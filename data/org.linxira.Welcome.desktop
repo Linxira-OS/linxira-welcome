@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Linxira Welcome
+Name[zh_CN]=Linxira 欢迎中心
+GenericName=Workstation Control Center
+GenericName[zh_CN]=工作站控制中心
+Comment=Open Linxira system tools and resources
+Comment[zh_CN]=打开 Linxira 系统工具与资源
+Exec=/usr/bin/linxira-welcome
+Icon=linxira
+Terminal=false
+Categories=System;Settings;
+StartupNotify=true
+StartupWMClass=linxira-welcome

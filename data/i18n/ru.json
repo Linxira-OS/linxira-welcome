@@ -1,0 +1,13 @@
+{
+  "overview": "Обзор", "software": "Программы", "system": "Система", "resources": "Ресурсы",
+  "subtitle_live": "Live научная рабочая станция", "subtitle_installed": "Центр управления научной станцией",
+  "live_title": "Готово к установке", "live_body": "Рабочий стол Plasma доступен во время установки.", "install": "Установить Linxira OS",
+  "quick": "Быстрый доступ", "open_software": "Открыть Shelly", "open_settings": "Параметры системы", "open_terminal": "Терминал",
+  "selection": "Выбор установки", "selection_none": "Дополнительные профили не выбраны", "catalog": "Проверенные профили рабочей станции", "catalog_error": "Каталог программ недоступен.",
+  "source_arch": "Официальные пакеты Arch", "system_tools": "Системные инструменты", "system_info": "Сведения о системе", "snapshots": "Снимки",
+  "updates": "Пакеты и обновления", "updates_body": "Проверьте пакеты и операции обновления в Shelly.",
+  "docs": "Документация", "project": "Проект", "website": "Сайт Linxira", "wiki": "Linxira Wiki", "arch_news": "Новости Arch Linux", "arch_wiki": "ArchWiki", "github": "Linxira на GitHub",
+  "show_login": "Показывать Welcome при входе", "launch_error": "Не удалось открыть {name}.", "profile_count": "Проверенных профилей: {count}", "language": "Язык",
+  "workstation_status": "Состояние станции", "release": "Версия", "kernel": "Ядро", "network": "Сеть", "catalog_review": "Проверка каталога", "connected": "Подключено", "offline": "Не в сети",
+  "guidance": "Руководство и обслуживание", "guidance_body": "Перед полным обновлением прочитайте новости Arch Linux; процессы Linxira описаны в Wiki.", "view_news": "Новости Arch Linux", "open_wiki": "Открыть Linxira Wiki"
+}

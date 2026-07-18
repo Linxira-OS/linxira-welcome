@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import platform
+from pathlib import Path
+import shutil
+import sys
+
+from PySide6.QtCore import QLocale, QProcess, QSettings, QSize, Qt, QUrl
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+CATALOG_PATH = Path(
+    os.environ.get("LINXIRA_CATALOG_PATH", "/usr/share/linxira/catalog/catalog-v2.json")
+)
+RECEIPT_PATH = Path(
+    os.environ.get(
+        "LINXIRA_INSTALLER_RECEIPT_PATH",
+        "/var/lib/linxira/installer-selection.json",
+    )
+)
+LIVE_INSTALLER = "/usr/local/bin/linxira-installer-shell"
+LOGO_PATH = Path(os.environ.get("LINXIRA_LOGO_PATH", "/usr/share/linxira/linxira-logo.svg"))
+I18N_PATH = Path(
+    os.environ.get("LINXIRA_WELCOME_I18N_PATH", "/usr/share/linxira/welcome/i18n")
+)
+
+LANGUAGES = {
+    "en": "English",
+    "zh_CN": "简体中文",
+    "zh_TW": "繁體中文",
+    "de": "Deutsch",
+    "es": "Español",
+    "fr": "Français",
+    "ja": "日本語",
+    "ko": "한국어",
+    "pt_BR": "Português (Brasil)",
+    "ru": "Русский",
+}
+
+LINKS = {
+    "website": "https://linxira-os.github.io/",
+    "wiki": "https://linxira-os.github.io/linxira-wiki/",
+    "arch_news": "https://archlinux.org/news/",
+    "arch_wiki": "https://wiki.archlinux.org/",
+    "github": "https://github.com/Linxira-OS",
+}
+
+APPS = {
+    "installer": (LIVE_INSTALLER, []),
+    "shelly": ("/usr/bin/shelly-ui", []),
+    "settings": ("/usr/bin/systemsettings", []),
+    "info": ("/usr/bin/kinfocenter", []),
+    "snapshots": ("/usr/bin/timeshift-launcher", []),
+    "terminal": ("/usr/bin/konsole", []),
+}
+
+TEXT = {
+    "en": {
+        "overview": "Overview",
+        "software": "Software",
+        "system": "System",
+        "resources": "Resources",
+        "subtitle_live": "Live scientific workstation",
+        "subtitle_installed": "Scientific workstation control center",
+        "live_title": "Ready to install",
+        "live_body": "The Plasma desktop remains available while the installer is running.",
+        "install": "Install Linxira OS",
+        "quick": "Quick access",
+        "open_software": "Open Shelly",
+        "open_settings": "System Settings",
+        "open_terminal": "Terminal",
+        "selection": "Installation selection",
+        "selection_none": "No optional profiles selected",
+        "catalog": "Curated workstation profiles",
+        "catalog_error": "The curated catalog is unavailable.",
+        "source_arch": "Official Arch packages",
+        "system_tools": "System tools",
+        "system_info": "System Information",
+        "snapshots": "Snapshots",
+        "updates": "Packages and updates",
+        "updates_body": "Review available packages and update transactions in Shelly.",
+        "docs": "Documentation",
+        "project": "Project",
+        "website": "Linxira website",
+        "wiki": "Linxira Wiki",
+        "arch_news": "Arch Linux News",
+        "arch_wiki": "ArchWiki",
+        "github": "Linxira on GitHub",
+        "show_login": "Show Welcome at login",
+        "launch_error": "Could not open {name}.",
+        "profile_count": "{count} reviewed profiles",
+        "language": "Language",
+        "workstation_status": "Workstation status",
+        "release": "Release",
+        "kernel": "Kernel",
+        "network": "Network",
+        "catalog_review": "Catalog review",
+        "connected": "Connected",
+        "offline": "Offline",
+        "guidance": "Guidance and maintenance",
+        "guidance_body": "Review Arch Linux News before system-wide updates and use Linxira Wiki for project-specific workflows.",
+        "view_news": "View Arch Linux News",
+        "open_wiki": "Open Linxira Wiki",
+    },
+}
+
+
+def read_json(path):
+    try:
+        with path.open(encoding="utf-8") as stream:
+            return json.load(stream)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def system_locale():
+    locale = QLocale.system().name()
+    if locale in LANGUAGES:
+        return locale
+    language = locale.split("_")[0]
+    return language if language in LANGUAGES else "en"
+
+
+def load_translation(language):
+    translation = dict(TEXT["en"])
+    localized = read_json(I18N_PATH / f"{language}.json")
+    if isinstance(localized, dict):
+        translation.update(localized)
+    return translation
+
+
+class WelcomeWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.settings = QSettings("Linxira", "Welcome")
+        preferred_language = self.settings.value("language", system_locale())
+        self.language = preferred_language if preferred_language in LANGUAGES else "en"
+        self.text = load_translation(self.language)
+        self.catalog = read_json(CATALOG_PATH)
+        self.receipt = read_json(RECEIPT_PATH)
+        self.is_live = Path("/run/archiso").exists() or os.access(LIVE_INSTALLER, os.X_OK)
+        self.setWindowTitle("Linxira Welcome")
+        self.logo_icon = QIcon(str(LOGO_PATH)) if LOGO_PATH.is_file() else QIcon.fromTheme("linxira")
+        self.setWindowIcon(self.logo_icon)
+        self.setMinimumSize(820, 560)
+        self.resize(1040, 700)
+        self._build_ui()
+
+    def tr(self, key, **values):
+        return self.text[key].format(**values)
+
+    def _build_ui(self):
+        root = QWidget()
+        root.setObjectName("root")
+        root_layout = QVBoxLayout(root)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(0)
+        root_layout.addWidget(self._header())
+
+        body = QHBoxLayout()
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(0)
+        self.navigation = QListWidget()
+        self.navigation.setObjectName("navigation")
+        self.navigation.setFixedWidth(190)
+        self.navigation.setIconSize(QSize(22, 22))
+        for label, icon in (
+            (self.tr("overview"), "go-home-symbolic"),
+            (self.tr("software"), "system-software-install"),
+            (self.tr("system"), "preferences-system"),
+            (self.tr("resources"), "help-contents"),
+        ):
+            item = QListWidgetItem(QIcon.fromTheme(icon), label)
+            item.setSizeHint(QSize(170, 48))
+            self.navigation.addItem(item)
+
+        self.pages = QStackedWidget()
+        self.pages.addWidget(self._overview_page())
+        self.pages.addWidget(self._software_page())
+        self.pages.addWidget(self._system_page())
+        self.pages.addWidget(self._resources_page())
+        self.navigation.currentRowChanged.connect(self.pages.setCurrentIndex)
+        self.navigation.setCurrentRow(0)
+        body.addWidget(self.navigation)
+        body.addWidget(self.pages, 1)
+        root_layout.addLayout(body, 1)
+        self.setCentralWidget(root)
+        self._apply_style()
+
+    def _header(self):
+        frame = QFrame()
+        frame.setObjectName("header")
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(28, 18, 28, 18)
+        icon = QLabel()
+        icon.setPixmap(self.logo_icon.pixmap(52, 52))
+        icon.setFixedSize(56, 56)
+        layout.addWidget(icon)
+
+        titles = QVBoxLayout()
+        title = QLabel("Linxira OS")
+        title.setObjectName("productTitle")
+        subtitle = QLabel(self.tr("subtitle_live" if self.is_live else "subtitle_installed"))
+        subtitle.setObjectName("subtitle")
+        titles.addWidget(title)
+        titles.addWidget(subtitle)
+        layout.addLayout(titles)
+        layout.addStretch()
+
+        language = QComboBox()
+        language.setObjectName("languageSelector")
+        for code, name in LANGUAGES.items():
+            language.addItem(name, code)
+        language.setCurrentIndex(language.findData(self.language))
+        language.currentIndexChanged.connect(
+            lambda index: self._set_language(language.itemData(index))
+        )
+        layout.addWidget(language)
+        return frame
+
+    def _set_language(self, language):
+        if not language or language == self.language:
+            return
+        current_page = self.navigation.currentRow()
+        self.language = language
+        self.text = load_translation(language)
+        self.settings.setValue("language", language)
+        self._build_ui()
+        self.navigation.setCurrentRow(current_page)
+
+    def _page(self, title):
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(32, 28, 32, 32)
+        layout.setSpacing(16)
+        heading = QLabel(title)
+        heading.setObjectName("pageTitle")
+        layout.addWidget(heading)
+        scroll.setWidget(content)
+        return scroll, layout
+
+    def _overview_page(self):
+        page, layout = self._page(self.tr("overview"))
+        if self.is_live:
+            banner = QFrame()
+            banner.setObjectName("installBanner")
+            row = QHBoxLayout(banner)
+            row.setContentsMargins(22, 18, 22, 18)
+            copy = QVBoxLayout()
+            title = QLabel(self.tr("live_title"))
+            title.setObjectName("sectionTitle")
+            body = QLabel(self.tr("live_body"))
+            body.setWordWrap(True)
+            copy.addWidget(title)
+            copy.addWidget(body)
+            row.addLayout(copy, 1)
+            row.addWidget(self._button(self.tr("install"), "drive-harddisk", "installer", primary=True))
+            layout.addWidget(banner)
+
+        layout.addWidget(self._section_title(self.tr("quick")))
+        actions = QGridLayout()
+        actions.setHorizontalSpacing(12)
+        actions.setVerticalSpacing(12)
+        actions.addWidget(self._action_tile(self.tr("open_software"), "system-software-install", "shelly"), 0, 0)
+        actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 0, 1)
+        actions.addWidget(self._action_tile(self.tr("open_terminal"), "utilities-terminal", "terminal"), 0, 2)
+        layout.addLayout(actions)
+
+        layout.addWidget(self._section_title(self.tr("workstation_status")))
+        status = QGridLayout()
+        status.setSpacing(12)
+        release = self.catalog.get("release", "-") if isinstance(self.catalog, dict) else "-"
+        reviewed = self.catalog.get("reviewed", "-") if isinstance(self.catalog, dict) else "-"
+        network = self.tr("connected") if self._network_connected() else self.tr("offline")
+        for column, (label, value) in enumerate(
+            (
+                (self.tr("release"), release),
+                (self.tr("kernel"), platform.release()),
+                (self.tr("network"), network),
+                (self.tr("catalog_review"), reviewed),
+            )
+        ):
+            status.addWidget(self._status_tile(label, value), 0, column)
+        layout.addLayout(status)
+
+        layout.addWidget(self._section_title(self.tr("selection")))
+        selection = QFrame()
+        selection.setObjectName("panel")
+        selection_layout = QVBoxLayout(selection)
+        selected = self.receipt.get("profiles", []) if isinstance(self.receipt, dict) else []
+        selection_layout.addWidget(QLabel(", ".join(selected) if selected else self.tr("selection_none")))
+        layout.addWidget(selection)
+
+        layout.addWidget(self._section_title(self.tr("guidance")))
+        guidance = QFrame()
+        guidance.setObjectName("panel")
+        guidance_layout = QVBoxLayout(guidance)
+        guidance_text = QLabel(self.tr("guidance_body"))
+        guidance_text.setWordWrap(True)
+        guidance_layout.addWidget(guidance_text)
+        guidance_actions = QHBoxLayout()
+        guidance_actions.addWidget(self._link_button(self.tr("view_news"), "view-calendar-news", "arch_news"))
+        guidance_actions.addWidget(self._link_button(self.tr("open_wiki"), "help-contents", "wiki"))
+        guidance_actions.addStretch()
+        guidance_layout.addLayout(guidance_actions)
+        layout.addWidget(guidance)
+        layout.addStretch()
+        return page
+
+    def _software_page(self):
+        page, layout = self._page(self.tr("software"))
+        top = QHBoxLayout()
+        title = self.tr("catalog")
+        profiles = self.catalog.get("profiles", []) if isinstance(self.catalog, dict) else []
+        top.addWidget(self._section_title(title))
+        top.addStretch()
+        top.addWidget(self._button(self.tr("open_software"), "system-software-install", "shelly", primary=True))
+        layout.addLayout(top)
+
+        if not profiles:
+            layout.addWidget(QLabel(self.tr("catalog_error")))
+        else:
+            count = QLabel(self.tr("profile_count", count=len(profiles)))
+            count.setObjectName("muted")
+            layout.addWidget(count)
+            locale_key = self.language if self.language in ("zh_CN",) else "en"
+            for profile in profiles:
+                card = QFrame()
+                card.setObjectName("panel")
+                card_layout = QHBoxLayout(card)
+                card_layout.setContentsMargins(18, 14, 18, 14)
+                copy = QVBoxLayout()
+                name = QLabel(profile.get("name", {}).get(locale_key, profile.get("id", "")))
+                name.setObjectName("sectionTitle")
+                description = QLabel(profile.get("description", {}).get(locale_key, ""))
+                description.setWordWrap(True)
+                source = QLabel(self.tr("source_arch") + "  |  " + " · ".join(profile.get("packages", [])))
+                source.setObjectName("muted")
+                source.setWordWrap(True)
+                copy.addWidget(name)
+                copy.addWidget(description)
+                copy.addWidget(source)
+                card_layout.addLayout(copy, 1)
+                layout.addWidget(card)
+        layout.addStretch()
+        return page
+
+    def _system_page(self):
+        page, layout = self._page(self.tr("system"))
+        layout.addWidget(self._section_title(self.tr("system_tools")))
+        tools = QGridLayout()
+        tools.setSpacing(12)
+        tools.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 0, 0)
+        tools.addWidget(self._action_tile(self.tr("system_info"), "hwinfo", "info"), 0, 1)
+        tools.addWidget(self._action_tile(self.tr("snapshots"), "document-revert", "snapshots"), 0, 2)
+        layout.addLayout(tools)
+
+        layout.addWidget(self._section_title(self.tr("updates")))
+        update_panel = QFrame()
+        update_panel.setObjectName("panel")
+        row = QHBoxLayout(update_panel)
+        description = QLabel(self.tr("updates_body"))
+        description.setWordWrap(True)
+        row.addWidget(description, 1)
+        row.addWidget(self._button(self.tr("open_software"), "system-software-update", "shelly"))
+        layout.addWidget(update_panel)
+        layout.addStretch()
+        return page
+
+    def _resources_page(self):
+        page, layout = self._page(self.tr("resources"))
+        layout.addWidget(self._section_title(self.tr("docs")))
+        layout.addWidget(self._link_row(self.tr("wiki"), "help-contents", "wiki"))
+        layout.addWidget(self._link_row(self.tr("arch_wiki"), "internet-web-browser", "arch_wiki"))
+        layout.addWidget(self._link_row(self.tr("arch_news"), "view-calendar-news", "arch_news"))
+        layout.addWidget(self._section_title(self.tr("project")))
+        layout.addWidget(self._link_row(self.tr("website"), "internet-web-browser", "website"))
+        layout.addWidget(self._link_row(self.tr("github"), "applications-development", "github"))
+        layout.addStretch()
+
+        show_login = QCheckBox(self.tr("show_login"))
+        show_login.setChecked(self.settings.value("showAtLogin", True, type=bool))
+        show_login.toggled.connect(lambda checked: self.settings.setValue("showAtLogin", checked))
+        layout.addWidget(show_login)
+        return page
+
+    def _section_title(self, text):
+        label = QLabel(text)
+        label.setObjectName("sectionTitle")
+        return label
+
+    def _status_tile(self, label, value):
+        frame = QFrame()
+        frame.setObjectName("statusTile")
+        layout = QVBoxLayout(frame)
+        layout.setContentsMargins(14, 11, 14, 11)
+        key = QLabel(label)
+        key.setObjectName("muted")
+        result = QLabel(value)
+        result.setObjectName("statusValue")
+        result.setWordWrap(True)
+        layout.addWidget(key)
+        layout.addWidget(result)
+        return frame
+
+    def _network_connected(self):
+        network_root = Path("/sys/class/net")
+        try:
+            return any(
+                interface.name != "lo"
+                and (interface / "operstate").read_text(encoding="utf-8").strip() == "up"
+                for interface in network_root.iterdir()
+            )
+        except OSError:
+            return False
+
+    def _button(self, text, icon, app, primary=False):
+        button = QPushButton(QIcon.fromTheme(icon), text)
+        button.setProperty("primary", primary)
+        executable = APPS[app][0]
+        button.setEnabled(shutil.which(executable) is not None or os.access(executable, os.X_OK))
+        button.clicked.connect(lambda: self._launch_app(app, text))
+        return button
+
+    def _action_tile(self, text, icon, app):
+        button = self._button(text, icon, app)
+        button.setObjectName("actionTile")
+        button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        button.setMinimumHeight(72)
+        return button
+
+    def _link_row(self, text, icon, link):
+        button = self._link_button(text, icon, link)
+        button.setObjectName("linkRow")
+        button.setMinimumHeight(50)
+        return button
+
+    def _link_button(self, text, icon, link):
+        button = QPushButton(QIcon.fromTheme(icon), text)
+        button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(LINKS[link])))
+        return button
+
+    def _launch_app(self, app, display_name):
+        executable, arguments = APPS[app]
+        if not QProcess.startDetached(executable, arguments):
+            QMessageBox.warning(self, "Linxira Welcome", self.tr("launch_error", name=display_name))
+
+    def _apply_style(self):
+        self.setStyleSheet(
+            """
+            QWidget#root { background: palette(window); }
+            QFrame#header { background: palette(base); border-bottom: 1px solid palette(mid); }
+            QLabel#productTitle { font-size: 23px; font-weight: 700; }
+            QLabel#subtitle { color: #b8c0c2; }
+            QLabel#muted { color: #9aa6a8; }
+            QLabel#pageTitle { font-size: 22px; font-weight: 650; }
+            QLabel#sectionTitle { font-size: 15px; font-weight: 650; }
+            QListWidget#navigation { background: palette(alternate-base); border: 0; padding: 14px 8px; }
+            QListWidget#navigation::item { border-radius: 5px; padding: 8px 12px; }
+            QListWidget#navigation::item:selected { background: #147f78; color: white; }
+            QFrame#panel { background: palette(base); border: 1px solid palette(midlight); border-radius: 6px; }
+            QFrame#statusTile { background: palette(base); border: 1px solid palette(midlight); border-radius: 5px; }
+            QLabel#statusValue { font-size: 14px; font-weight: 600; }
+            QFrame#installBanner { background: #123f3d; color: white; border-left: 4px solid #20b8a6; border-radius: 6px; }
+            QFrame#installBanner QLabel { color: white; }
+            QPushButton { min-height: 34px; padding: 5px 13px; border-radius: 5px; }
+            QPushButton[primary="true"] { background: #147f78; color: white; border: 1px solid #147f78; font-weight: 600; }
+            QPushButton[primary="true"]:hover { background: #106c66; }
+            QPushButton#actionTile { text-align: left; padding: 12px 18px; background: palette(base); border: 1px solid palette(midlight); }
+            QPushButton#actionTile:hover, QPushButton#linkRow:hover { border-color: #147f78; }
+            QPushButton#linkRow { text-align: left; padding: 8px 14px; background: palette(base); border: 1px solid palette(midlight); }
+            QComboBox#languageSelector { min-width: 150px; min-height: 34px; padding: 3px 8px; }
+            """
+        )
+
+def main():
+    app = QApplication(sys.argv)
+    app.setApplicationName("Linxira Welcome")
+    app.setOrganizationName("Linxira")
+    settings = QSettings("Linxira", "Welcome")
+    if "--autostart" in sys.argv and not settings.value("showAtLogin", True, type=bool):
+        return 0
+    window = WelcomeWindow()
+    window.show()
+    return app.exec()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

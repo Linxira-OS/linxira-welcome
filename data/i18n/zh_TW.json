@@ -1,0 +1,13 @@
+{
+  "overview": "概覽", "software": "軟體", "system": "系統", "resources": "資源",
+  "subtitle_live": "Live 科研工作站", "subtitle_installed": "科研工作站控制中心",
+  "live_title": "可以開始安裝", "live_body": "安裝程式執行時，Plasma 桌面仍可正常使用。", "install": "安裝 Linxira OS",
+  "quick": "快速存取", "open_software": "開啟 Shelly", "open_settings": "系統設定", "open_terminal": "終端機",
+  "selection": "安裝元件選擇", "selection_none": "未選擇選用設定", "catalog": "精選工作站設定", "catalog_error": "精選軟體目錄目前無法使用。",
+  "source_arch": "Arch 官方軟體包", "system_tools": "系統工具", "system_info": "系統資訊", "snapshots": "系統快照",
+  "updates": "軟體包與更新", "updates_body": "在 Shelly 中檢視可用軟體包與更新交易。",
+  "docs": "文件", "project": "專案", "website": "Linxira 網站", "wiki": "Linxira Wiki", "arch_news": "Arch Linux 新聞", "arch_wiki": "ArchWiki", "github": "Linxira GitHub",
+  "show_login": "登入時顯示 Welcome", "launch_error": "無法開啟{name}。", "profile_count": "{count} 個已審核設定", "language": "語言",
+  "workstation_status": "工作站狀態", "release": "版本", "kernel": "核心", "network": "網路", "catalog_review": "目錄審核", "connected": "已連線", "offline": "離線",
+  "guidance": "維護與指引", "guidance_body": "全系統更新前請查看 Arch Linux 新聞；Linxira 專屬工作流程請參考 Linxira Wiki。", "view_news": "查看 Arch Linux 新聞", "open_wiki": "開啟 Linxira Wiki"
+}

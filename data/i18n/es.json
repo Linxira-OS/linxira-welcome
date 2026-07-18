@@ -1,0 +1,13 @@
+{
+  "overview": "Resumen", "software": "Software", "system": "Sistema", "resources": "Recursos",
+  "subtitle_live": "Estación científica Live", "subtitle_installed": "Centro de control de la estación científica",
+  "live_title": "Listo para instalar", "live_body": "El escritorio Plasma seguirá disponible durante la instalación.", "install": "Instalar Linxira OS",
+  "quick": "Acceso rápido", "open_software": "Abrir Shelly", "open_settings": "Configuración del sistema", "open_terminal": "Terminal",
+  "selection": "Selección de instalación", "selection_none": "No hay perfiles opcionales seleccionados", "catalog": "Perfiles de estación seleccionados", "catalog_error": "El catálogo no está disponible.",
+  "source_arch": "Paquetes oficiales de Arch", "system_tools": "Herramientas del sistema", "system_info": "Información del sistema", "snapshots": "Instantáneas",
+  "updates": "Paquetes y actualizaciones", "updates_body": "Revise los paquetes y las operaciones de actualización en Shelly.",
+  "docs": "Documentación", "project": "Proyecto", "website": "Sitio web de Linxira", "wiki": "Wiki de Linxira", "arch_news": "Noticias de Arch Linux", "arch_wiki": "ArchWiki", "github": "Linxira en GitHub",
+  "show_login": "Mostrar Welcome al iniciar sesión", "launch_error": "No se pudo abrir {name}.", "profile_count": "{count} perfiles revisados", "language": "Idioma",
+  "workstation_status": "Estado de la estación", "release": "Versión", "kernel": "Kernel", "network": "Red", "catalog_review": "Revisión del catálogo", "connected": "Conectado", "offline": "Sin conexión",
+  "guidance": "Guía y mantenimiento", "guidance_body": "Consulte las noticias de Arch Linux antes de actualizar todo el sistema y la Wiki de Linxira para los flujos propios.", "view_news": "Ver noticias de Arch Linux", "open_wiki": "Abrir Wiki de Linxira"
+}

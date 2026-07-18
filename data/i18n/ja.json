@@ -1,0 +1,13 @@
+{
+  "overview": "概要", "software": "ソフトウェア", "system": "システム", "resources": "リソース",
+  "subtitle_live": "Live 科学ワークステーション", "subtitle_installed": "科学ワークステーション・コントロールセンター",
+  "live_title": "インストールできます", "live_body": "インストール中も Plasma デスクトップを利用できます。", "install": "Linxira OS をインストール",
+  "quick": "クイックアクセス", "open_software": "Shelly を開く", "open_settings": "システム設定", "open_terminal": "端末",
+  "selection": "インストール選択", "selection_none": "オプションプロファイルは未選択です", "catalog": "厳選ワークステーションプロファイル", "catalog_error": "ソフトウェアカタログを利用できません。",
+  "source_arch": "Arch 公式パッケージ", "system_tools": "システムツール", "system_info": "システム情報", "snapshots": "スナップショット",
+  "updates": "パッケージと更新", "updates_body": "Shelly でパッケージと更新内容を確認します。",
+  "docs": "ドキュメント", "project": "プロジェクト", "website": "Linxira ウェブサイト", "wiki": "Linxira Wiki", "arch_news": "Arch Linux ニュース", "arch_wiki": "ArchWiki", "github": "Linxira GitHub",
+  "show_login": "ログイン時に Welcome を表示", "launch_error": "{name} を開けませんでした。", "profile_count": "確認済みプロファイル {count} 件", "language": "言語",
+  "workstation_status": "ワークステーション状態", "release": "リリース", "kernel": "カーネル", "network": "ネットワーク", "catalog_review": "カタログ確認日", "connected": "接続済み", "offline": "オフライン",
+  "guidance": "ガイドとメンテナンス", "guidance_body": "システム全体の更新前に Arch Linux ニュースを確認し、Linxira 固有の手順は Wiki を参照してください。", "view_news": "Arch Linux ニュース", "open_wiki": "Linxira Wiki を開く"
+}
