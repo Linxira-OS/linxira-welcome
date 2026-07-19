@@ -69,6 +69,11 @@ LINKS = {
 APPS = {
     "installer": (LIVE_INSTALLER, []),
     "shelly": ("/usr/bin/shelly-ui", []),
+    "package_center": ("/usr/bin/linxira-software-center", []),
+    "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "help"]),
+    "mirrors": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "mirror", "list"]),
+    "runtime": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "runtime", "status"]),
+    "miniforge": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "conda", "channels", "list"]),
     "settings": ("/usr/bin/systemsettings", []),
     "info": ("/usr/bin/kinfocenter", []),
     "snapshots": ("/usr/bin/timeshift-launcher", []),
@@ -78,7 +83,9 @@ APPS = {
 TEXT = {
     "en": {
         "overview": "Overview",
-        "software": "Software",
+        "setup": "Setup & Install",
+        "software": "Applications",
+        "sources": "Sources & Runtimes",
         "system": "System",
         "resources": "Resources",
         "subtitle_live": "Live scientific workstation",
@@ -87,19 +94,24 @@ TEXT = {
         "live_body": "The Plasma desktop remains available while the installer is running.",
         "install": "Install Linxira OS",
         "quick": "Quick access",
-        "open_software": "Open Shelly",
+        "open_software": "Package Center",
+        "open_shelly": "Browse packages",
+        "open_config": "Admin configuration",
+        "open_mirrors": "Package mirrors",
+        "open_runtime": "Runtime status",
+        "open_miniforge": "Miniforge channels",
         "open_settings": "System Settings",
         "open_terminal": "Terminal",
         "selection": "Installation selection",
-        "selection_none": "No optional profiles selected",
-        "catalog": "Curated workstation profiles",
+        "selection_none": "No optional profiles or applications selected",
+        "catalog": "Reviewed applications",
         "catalog_error": "The curated catalog is unavailable.",
         "source_arch": "Official Arch packages",
         "system_tools": "System tools",
         "system_info": "System Information",
         "snapshots": "Snapshots",
         "updates": "Packages and updates",
-        "updates_body": "Review available packages and update transactions in Shelly.",
+        "updates_body": "Review catalog applications and confirmed transactions in Package Center.",
         "docs": "Documentation",
         "project": "Project",
         "website": "Linxira website",
@@ -109,7 +121,9 @@ TEXT = {
         "github": "Linxira on GitHub",
         "show_login": "Show Welcome at login",
         "launch_error": "Could not open {name}.",
-        "profile_count": "{count} reviewed profiles",
+        "application_count": "{count} installable applications",
+        "setup_tools": "Installation and administration",
+        "source_tools": "Sources and runtime environments",
         "language": "Language",
         "workstation_status": "Workstation status",
         "release": "Release",
@@ -187,7 +201,9 @@ class WelcomeWindow(QMainWindow):
         self.navigation.setIconSize(QSize(22, 22))
         for label, icon in (
             (self.tr("overview"), "go-home-symbolic"),
+            (self.tr("setup"), "configure"),
             (self.tr("software"), "system-software-install"),
+            (self.tr("sources"), "network-server"),
             (self.tr("system"), "preferences-system"),
             (self.tr("resources"), "help-contents"),
         ):
@@ -197,7 +213,9 @@ class WelcomeWindow(QMainWindow):
 
         self.pages = QStackedWidget()
         self.pages.addWidget(self._overview_page())
+        self.pages.addWidget(self._setup_page())
         self.pages.addWidget(self._software_page())
+        self.pages.addWidget(self._sources_page())
         self.pages.addWidget(self._system_page())
         self.pages.addWidget(self._resources_page())
         self.navigation.currentRowChanged.connect(self.pages.setCurrentIndex)
@@ -285,9 +303,9 @@ class WelcomeWindow(QMainWindow):
         actions = QGridLayout()
         actions.setHorizontalSpacing(12)
         actions.setVerticalSpacing(12)
-        actions.addWidget(self._action_tile(self.tr("open_software"), "system-software-install", "shelly"), 0, 0)
-        actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 0, 1)
-        actions.addWidget(self._action_tile(self.tr("open_terminal"), "utilities-terminal", "terminal"), 0, 2)
+        actions.addWidget(self._action_tile(self.tr("open_software"), "system-software-install", "package_center"), 0, 0)
+        actions.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 0, 1)
+        actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 0, 2)
         layout.addLayout(actions)
 
         layout.addWidget(self._section_title(self.tr("workstation_status")))
@@ -311,7 +329,9 @@ class WelcomeWindow(QMainWindow):
         selection = QFrame()
         selection.setObjectName("panel")
         selection_layout = QVBoxLayout(selection)
-        selected = self.receipt.get("profiles", []) if isinstance(self.receipt, dict) else []
+        selected = []
+        if isinstance(self.receipt, dict):
+            selected = self.receipt.get("profiles", []) + self.receipt.get("applications", [])
         selection_layout.addWidget(QLabel(", ".join(selected) if selected else self.tr("selection_none")))
         layout.addWidget(selection)
 
@@ -331,34 +351,59 @@ class WelcomeWindow(QMainWindow):
         layout.addStretch()
         return page
 
+    def _setup_page(self):
+        page, layout = self._page(self.tr("setup"))
+        layout.addWidget(self._section_title(self.tr("setup_tools")))
+        tools = QGridLayout()
+        tools.setSpacing(12)
+        if self.is_live:
+            tools.addWidget(self._action_tile(self.tr("install"), "drive-harddisk", "installer"), 0, 0)
+        tools.addWidget(self._action_tile(self.tr("open_software"), "system-software-install", "package_center"), 0, 1)
+        tools.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 0, 2)
+        tools.addWidget(self._action_tile(self.tr("open_mirrors"), "network-server", "mirrors"), 1, 0)
+        tools.addWidget(self._action_tile(self.tr("open_runtime"), "utilities-system-monitor", "runtime"), 1, 1)
+        tools.addWidget(self._action_tile(self.tr("open_miniforge"), "applications-science", "miniforge"), 1, 2)
+        layout.addLayout(tools)
+        layout.addStretch()
+        return page
+
     def _software_page(self):
         page, layout = self._page(self.tr("software"))
         top = QHBoxLayout()
         title = self.tr("catalog")
-        profiles = self.catalog.get("profiles", []) if isinstance(self.catalog, dict) else []
+        applications = self.catalog.get("applications", []) if isinstance(self.catalog, dict) else []
+        applications = [
+            application
+            for application in applications
+            if application.get("installer")
+            and application.get("source") == "arch"
+            and application.get("review", {}).get("status") == "reviewed"
+        ]
         top.addWidget(self._section_title(title))
         top.addStretch()
-        top.addWidget(self._button(self.tr("open_software"), "system-software-install", "shelly", primary=True))
+        top.addWidget(self._button(self.tr("open_shelly"), "system-software-install", "shelly"))
+        top.addWidget(self._button(self.tr("open_software"), "system-software-install", "package_center", primary=True))
         layout.addLayout(top)
 
-        if not profiles:
+        if not applications:
             layout.addWidget(QLabel(self.tr("catalog_error")))
         else:
-            count = QLabel(self.tr("profile_count", count=len(profiles)))
+            count = QLabel(self.tr("application_count", count=len(applications)))
             count.setObjectName("muted")
             layout.addWidget(count)
             locale_key = self.language if self.language in ("zh_CN",) else "en"
-            for profile in profiles:
+            for application in sorted(applications, key=lambda item: item.get("presentation", {}).get("order", 0)):
                 card = QFrame()
                 card.setObjectName("panel")
                 card_layout = QHBoxLayout(card)
                 card_layout.setContentsMargins(18, 14, 18, 14)
                 copy = QVBoxLayout()
-                name = QLabel(profile.get("name", {}).get(locale_key, profile.get("id", "")))
+                name = QLabel(application.get("name", {}).get(locale_key, application.get("id", "")))
                 name.setObjectName("sectionTitle")
-                description = QLabel(profile.get("description", {}).get(locale_key, ""))
+                description = QLabel(application.get("description", {}).get(locale_key, ""))
                 description.setWordWrap(True)
-                source = QLabel(self.tr("source_arch") + "  |  " + " · ".join(profile.get("packages", [])))
+                categories = " / ".join(application.get("categories", []))
+                source = QLabel(categories + "  |  " + self.tr("source_arch") + "  |  " + " · ".join(application.get("packages", [])))
                 source.setObjectName("muted")
                 source.setWordWrap(True)
                 copy.addWidget(name)
@@ -366,6 +411,19 @@ class WelcomeWindow(QMainWindow):
                 copy.addWidget(source)
                 card_layout.addLayout(copy, 1)
                 layout.addWidget(card)
+        layout.addStretch()
+        return page
+
+    def _sources_page(self):
+        page, layout = self._page(self.tr("sources"))
+        layout.addWidget(self._section_title(self.tr("source_tools")))
+        tools = QGridLayout()
+        tools.setSpacing(12)
+        tools.addWidget(self._action_tile(self.tr("open_mirrors"), "network-server", "mirrors"), 0, 0)
+        tools.addWidget(self._action_tile(self.tr("open_runtime"), "utilities-system-monitor", "runtime"), 0, 1)
+        tools.addWidget(self._action_tile(self.tr("open_miniforge"), "applications-science", "miniforge"), 0, 2)
+        tools.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 1, 0)
+        layout.addLayout(tools)
         layout.addStretch()
         return page
 
@@ -386,7 +444,7 @@ class WelcomeWindow(QMainWindow):
         description = QLabel(self.tr("updates_body"))
         description.setWordWrap(True)
         row.addWidget(description, 1)
-        row.addWidget(self._button(self.tr("open_software"), "system-software-update", "shelly"))
+        row.addWidget(self._button(self.tr("open_software"), "system-software-update", "package_center"))
         layout.addWidget(update_panel)
         layout.addStretch()
         return page

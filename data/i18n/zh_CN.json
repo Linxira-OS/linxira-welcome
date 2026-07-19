@@ -1,13 +1,13 @@
 {
-  "overview": "概览", "software": "软件", "system": "系统", "resources": "资源",
+  "overview": "概览", "setup": "设置与安装", "software": "应用程序", "sources": "源与运行时", "system": "系统", "resources": "资源",
   "subtitle_live": "Live 科研工作站", "subtitle_installed": "科研工作站控制中心",
   "live_title": "可以开始安装", "live_body": "安装器运行时，Plasma 桌面仍可正常使用。", "install": "安装 Linxira OS",
-  "quick": "快速访问", "open_software": "打开 Shelly", "open_settings": "系统设置", "open_terminal": "终端",
-  "selection": "安装组件选择", "selection_none": "未选择可选配置", "catalog": "精选工作站配置", "catalog_error": "精选软件目录当前不可用。",
+  "quick": "快速访问", "open_software": "软件中心", "open_shelly": "浏览软件包", "open_config": "管理员配置", "open_mirrors": "软件源与镜像", "open_runtime": "运行时状态", "open_miniforge": "Miniforge Channels", "open_settings": "系统设置", "open_terminal": "终端",
+  "selection": "安装组件选择", "selection_none": "未选择可选配置或应用", "catalog": "已审核应用程序", "catalog_error": "精选软件目录当前不可用。",
   "source_arch": "Arch 官方软件包", "system_tools": "系统工具", "system_info": "系统信息", "snapshots": "系统快照",
-  "updates": "软件包与更新", "updates_body": "在 Shelly 中审阅可用软件包与更新事务。",
+  "updates": "软件包与更新", "updates_body": "在软件中心中审阅目录应用和已确认事务。",
   "docs": "文档", "project": "项目", "website": "Linxira 网站", "wiki": "Linxira Wiki", "arch_news": "Arch Linux 新闻", "arch_wiki": "ArchWiki", "github": "Linxira GitHub",
-  "show_login": "登录时显示 Welcome", "launch_error": "无法打开{name}。", "profile_count": "{count} 个已审核配置", "language": "语言",
+  "show_login": "登录时显示 Welcome", "launch_error": "无法打开{name}。", "application_count": "{count} 个可安装应用", "setup_tools": "安装与管理", "source_tools": "软件源与运行时环境", "language": "语言",
   "workstation_status": "工作站状态", "release": "版本", "kernel": "内核", "network": "网络", "catalog_review": "目录审核", "connected": "已连接", "offline": "离线",
   "guidance": "维护与指引", "guidance_body": "全系统更新前请查看 Arch Linux 新闻；Linxira 专属工作流请参考 Linxira Wiki。", "view_news": "查看 Arch Linux 新闻", "open_wiki": "打开 Linxira Wiki"
 }

@@ -6,9 +6,10 @@ The application reads the versioned Linxira software catalog and installer
 receipt, then exposes a fixed allowlist of desktop tools and project resources.
 It does not execute shell strings, package transactions, `sudo`, or `pkexec`.
 
-Current surfaces include the Live installer entry, workstation status, curated
-profiles, installation receipts, system and recovery tools, Arch Linux News,
-project documentation, and a persistent language/login preference.
+Current surfaces include the Live installer, Package Center, administrator
+configuration terminal, package mirrors, runtime status, Miniforge channels,
+reviewed catalog applications, installation receipts, system/recovery tools,
+Arch Linux News, project documentation, and language/login preferences.
 
 ## Runtime dependencies
 
@@ -16,8 +17,9 @@ project documentation, and a persistent language/login preference.
 - PySide6
 - Linxira catalog v2 in `/usr/share/linxira/catalog/`
 
-Optional launch targets such as Shelly, Timeshift, System Settings, Info Center,
-Konsole, and Calamares are enabled only when their fixed executable exists.
+Optional launch targets such as Package Center, Config Hub, Shelly, Timeshift,
+System Settings, Info Center, Konsole, and Calamares are enabled only when their
+fixed executable exists. Welcome never constructs or executes shell strings.
 
 ## Layout
 
