@@ -177,8 +177,8 @@ class WelcomeWindow(QMainWindow):
         self.setWindowTitle("Linxira Welcome")
         self.logo_icon = QIcon(str(LOGO_PATH)) if LOGO_PATH.is_file() else QIcon.fromTheme("linxira")
         self.setWindowIcon(self.logo_icon)
-        self.setMinimumSize(820, 560)
-        self.resize(1040, 700)
+        self.setMinimumSize(760, 520)
+        self.resize(960, 680)
         self._build_ui()
 
     def tr(self, key, **values):
@@ -197,7 +197,7 @@ class WelcomeWindow(QMainWindow):
         body.setSpacing(0)
         self.navigation = QListWidget()
         self.navigation.setObjectName("navigation")
-        self.navigation.setFixedWidth(190)
+        self.navigation.setFixedWidth(230)
         self.navigation.setIconSize(QSize(22, 22))
         for label, icon in (
             (self.tr("overview"), "go-home-symbolic"),
@@ -208,7 +208,7 @@ class WelcomeWindow(QMainWindow):
             (self.tr("resources"), "help-contents"),
         ):
             item = QListWidgetItem(QIcon.fromTheme(icon), label)
-            item.setSizeHint(QSize(170, 48))
+            item.setSizeHint(QSize(210, 48))
             self.navigation.addItem(item)
 
         self.pages = QStackedWidget()
