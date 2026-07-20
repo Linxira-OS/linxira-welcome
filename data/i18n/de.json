@@ -1,13 +1,12 @@
 {
-  "overview": "Übersicht", "software": "Software", "system": "System", "resources": "Ressourcen",
-  "subtitle_live": "Live-Wissenschaftsarbeitsplatz", "subtitle_installed": "Kontrollzentrum für wissenschaftliche Workstations",
+  "home": "Start", "status": "Status", "help": "Hilfe",
+  "subtitle_live": "Live-Wissenschaftsarbeitsplatz", "subtitle_installed": "Willkommen auf der wissenschaftlichen Workstation",
   "live_title": "Bereit zur Installation", "live_body": "Der Plasma-Desktop bleibt während der Installation verfügbar.", "install": "Linxira OS installieren",
-  "quick": "Schnellzugriff", "open_software": "Shelly öffnen", "open_settings": "Systemeinstellungen", "open_terminal": "Terminal",
-  "selection": "Installationsauswahl", "selection_none": "Keine optionalen Profile ausgewählt", "catalog": "Kuratierte Workstation-Profile", "catalog_error": "Der kuratierte Katalog ist nicht verfügbar.",
-  "source_arch": "Offizielle Arch-Pakete", "system_tools": "Systemwerkzeuge", "system_info": "Systeminformationen", "snapshots": "Schnappschüsse",
-  "updates": "Pakete und Aktualisierungen", "updates_body": "Pakete und Aktualisierungsvorgänge in Shelly prüfen.",
+  "launchers": "Linxira-Werkzeug öffnen", "open_software": "Paketzentrum", "open_components": "Komponentenverwaltung", "open_config": "Config CLI", "open_settings": "Systemeinstellungen",
+  "workstation_status": "Workstation-Status", "health": "Systemzustand", "health_ready": "Bereit", "health_attention": "Aufmerksamkeit erforderlich", "first_completion": "Ersteinrichtung", "completion_complete": "Abgeschlossen", "completion_pending": "Ausstehend", "completion_unknown": "Nicht erfasst",
+  "release": "Version", "kernel": "Kernel", "network": "Netzwerk", "catalog_review": "Katalogprüfung", "connected": "Verbunden", "offline": "Offline", "catalog_available": "Verfügbar", "catalog_unavailable": "Nicht verfügbar", "receipt_status": "Installationsbeleg", "receipt_missing": "Nicht verfügbar",
+  "selection": "Installationsauswahl", "selection_none": "Keine optionalen Profile oder Anwendungen ausgewählt",
+  "guidance": "Hinweise und Wartung", "guidance_body": "Vor vollständigen Systemaktualisierungen Arch Linux Neuigkeiten lesen; Linxira-spezifische Abläufe stehen im Linxira Wiki.", "view_news": "Arch Linux Neuigkeiten", "open_wiki": "Linxira Wiki öffnen",
   "docs": "Dokumentation", "project": "Projekt", "website": "Linxira-Webseite", "wiki": "Linxira Wiki", "arch_news": "Arch Linux Neuigkeiten", "arch_wiki": "ArchWiki", "github": "Linxira auf GitHub",
-  "show_login": "Welcome bei der Anmeldung anzeigen", "launch_error": "{name} konnte nicht geöffnet werden.", "profile_count": "{count} geprüfte Profile", "language": "Sprache",
-  "workstation_status": "Workstation-Status", "release": "Version", "kernel": "Kernel", "network": "Netzwerk", "catalog_review": "Katalogprüfung", "connected": "Verbunden", "offline": "Offline",
-  "guidance": "Hinweise und Wartung", "guidance_body": "Vor vollständigen Systemaktualisierungen Arch Linux Neuigkeiten lesen; Linxira-spezifische Abläufe stehen im Linxira Wiki.", "view_news": "Arch Linux Neuigkeiten", "open_wiki": "Linxira Wiki öffnen"
+  "show_login": "Welcome bei der Anmeldung anzeigen", "launch_error": "{name} konnte nicht geöffnet werden."
 }

@@ -68,50 +68,29 @@ LINKS = {
 
 APPS = {
     "installer": (LIVE_INSTALLER, []),
-    "shelly": ("/usr/bin/shelly-ui", []),
     "package_center": ("/usr/bin/linxira-package-center", []),
+    "component_manager": ("/usr/bin/linxira-component-manager", []),
     "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
-    "mirrors": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "mirror", "list"]),
-    "runtime": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "runtime", "status"]),
-    "miniforge": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "conda", "channels", "list"]),
     "settings": ("/usr/bin/systemsettings", []),
-    "info": ("/usr/bin/kinfocenter", []),
-    "snapshots": ("/usr/bin/timeshift-launcher", []),
-    "terminal": ("/usr/bin/konsole", []),
 }
 
 TEXT = {
     "en": {
-        "overview": "Overview",
-        "setup": "Setup & Install",
-        "software": "Applications",
-        "sources": "Sources & Runtimes",
-        "system": "System",
-        "resources": "Resources",
+        "home": "Home",
+        "status": "Status",
+        "help": "Help",
         "subtitle_live": "Live scientific workstation",
-        "subtitle_installed": "Scientific workstation control center",
+        "subtitle_installed": "Scientific workstation welcome",
         "live_title": "Ready to install",
         "live_body": "The Plasma desktop remains available while the installer is running.",
         "install": "Install Linxira OS",
-        "quick": "Quick access",
+        "launchers": "Open a Linxira tool",
         "open_software": "Package Center",
-        "open_shelly": "Browse packages",
-        "open_config": "Admin configuration",
-        "open_mirrors": "Package mirrors",
-        "open_runtime": "Runtime status",
-        "open_miniforge": "Miniforge channels",
+        "open_components": "Component Manager",
+        "open_config": "Config CLI",
         "open_settings": "System Settings",
-        "open_terminal": "Terminal",
         "selection": "Installation selection",
         "selection_none": "No optional profiles or applications selected",
-        "catalog": "Reviewed applications",
-        "catalog_error": "The curated catalog is unavailable.",
-        "source_arch": "Official Arch packages",
-        "system_tools": "System tools",
-        "system_info": "System Information",
-        "snapshots": "Snapshots",
-        "updates": "Packages and updates",
-        "updates_body": "Review catalog applications and confirmed transactions in Package Center.",
         "docs": "Documentation",
         "project": "Project",
         "website": "Linxira website",
@@ -121,17 +100,24 @@ TEXT = {
         "github": "Linxira on GitHub",
         "show_login": "Show Welcome at login",
         "launch_error": "Could not open {name}.",
-        "application_count": "{count} installable applications",
-        "setup_tools": "Installation and administration",
-        "source_tools": "Sources and runtime environments",
-        "language": "Language",
         "workstation_status": "Workstation status",
+        "health": "Health",
+        "health_ready": "Ready",
+        "health_attention": "Needs attention",
+        "first_completion": "First completion",
+        "completion_complete": "Complete",
+        "completion_pending": "Pending",
+        "completion_unknown": "Not recorded",
+        "receipt_status": "Installer receipt",
+        "receipt_missing": "Unavailable",
         "release": "Release",
         "kernel": "Kernel",
         "network": "Network",
         "catalog_review": "Catalog review",
         "connected": "Connected",
         "offline": "Offline",
+        "catalog_available": "Available",
+        "catalog_unavailable": "Unavailable",
         "guidance": "Guidance and maintenance",
         "guidance_body": "Review Arch Linux News before system-wide updates and use Linxira Wiki for project-specific workflows.",
         "view_news": "View Arch Linux News",
@@ -200,24 +186,18 @@ class WelcomeWindow(QMainWindow):
         self.navigation.setFixedWidth(230)
         self.navigation.setIconSize(QSize(22, 22))
         for label, icon in (
-            (self.tr("overview"), "go-home-symbolic"),
-            (self.tr("setup"), "configure"),
-            (self.tr("software"), "system-software-install"),
-            (self.tr("sources"), "network-server"),
-            (self.tr("system"), "preferences-system"),
-            (self.tr("resources"), "help-contents"),
+            (self.tr("home"), "go-home-symbolic"),
+            (self.tr("status"), "dialog-information"),
+            (self.tr("help"), "help-contents"),
         ):
             item = QListWidgetItem(QIcon.fromTheme(icon), label)
             item.setSizeHint(QSize(210, 48))
             self.navigation.addItem(item)
 
         self.pages = QStackedWidget()
-        self.pages.addWidget(self._overview_page())
-        self.pages.addWidget(self._setup_page())
-        self.pages.addWidget(self._software_page())
-        self.pages.addWidget(self._sources_page())
-        self.pages.addWidget(self._system_page())
-        self.pages.addWidget(self._resources_page())
+        self.pages.addWidget(self._home_page())
+        self.pages.addWidget(self._status_page())
+        self.pages.addWidget(self._help_page())
         self.navigation.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.navigation.setCurrentRow(0)
         body.addWidget(self.navigation)
@@ -281,8 +261,8 @@ class WelcomeWindow(QMainWindow):
         scroll.setWidget(content)
         return scroll, layout
 
-    def _overview_page(self):
-        page, layout = self._page(self.tr("overview"))
+    def _home_page(self):
+        page, layout = self._page(self.tr("home"))
         if self.is_live:
             banner = QFrame()
             banner.setObjectName("installBanner")
@@ -298,31 +278,47 @@ class WelcomeWindow(QMainWindow):
             row.addLayout(copy, 1)
             row.addWidget(self._button(self.tr("install"), "drive-harddisk", "installer", primary=True))
             layout.addWidget(banner)
+        else:
+            layout.addWidget(self._section_title(self.tr("workstation_status")))
+            status = QGridLayout()
+            status.setSpacing(12)
+            health, completion = self._installed_state()
+            status.addWidget(self._status_tile(self.tr("health"), self.tr(health)), 0, 0)
+            status.addWidget(self._status_tile(self.tr("first_completion"), self.tr(completion)), 0, 1)
+            layout.addLayout(status)
 
-        layout.addWidget(self._section_title(self.tr("quick")))
+        layout.addWidget(self._section_title(self.tr("launchers")))
         actions = QGridLayout()
         actions.setHorizontalSpacing(12)
         actions.setVerticalSpacing(12)
         actions.addWidget(self._action_tile(self.tr("open_software"), "system-software-install", "package_center"), 0, 0)
-        actions.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 0, 1)
-        actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 0, 2)
+        actions.addWidget(self._action_tile(self.tr("open_components"), "preferences-system-software", "component_manager"), 0, 1)
+        actions.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 1, 0)
+        actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 1, 1)
         layout.addLayout(actions)
+        layout.addStretch()
+        return page
 
+    def _status_page(self):
+        page, layout = self._page(self.tr("status"))
         layout.addWidget(self._section_title(self.tr("workstation_status")))
         status = QGridLayout()
         status.setSpacing(12)
         release = self.catalog.get("release", "-") if isinstance(self.catalog, dict) else "-"
         reviewed = self.catalog.get("reviewed", "-") if isinstance(self.catalog, dict) else "-"
         network = self.tr("connected") if self._network_connected() else self.tr("offline")
+        catalog_status = self.tr("catalog_available") if isinstance(self.catalog, dict) else self.tr("catalog_unavailable")
+        receipt_status = self.receipt.get("status", self.tr("receipt_missing")) if isinstance(self.receipt, dict) else self.tr("receipt_missing")
         for column, (label, value) in enumerate(
             (
                 (self.tr("release"), release),
                 (self.tr("kernel"), platform.release()),
                 (self.tr("network"), network),
-                (self.tr("catalog_review"), reviewed),
+                (self.tr("catalog_review"), f"{catalog_status} / {reviewed}"),
+                (self.tr("receipt_status"), receipt_status),
             )
         ):
-            status.addWidget(self._status_tile(label, value), 0, column)
+            status.addWidget(self._status_tile(label, value), column // 3, column % 3)
         layout.addLayout(status)
 
         layout.addWidget(self._section_title(self.tr("selection")))
@@ -331,10 +327,18 @@ class WelcomeWindow(QMainWindow):
         selection_layout = QVBoxLayout(selection)
         selected = []
         if isinstance(self.receipt, dict):
-            selected = self.receipt.get("profiles", []) + self.receipt.get("applications", [])
+            profiles = self.receipt.get("profiles", [])
+            applications = self.receipt.get("applications", [])
+            if isinstance(profiles, list) and isinstance(applications, list):
+                selected = profiles + applications
         selection_layout.addWidget(QLabel(", ".join(selected) if selected else self.tr("selection_none")))
         layout.addWidget(selection)
 
+        layout.addStretch()
+        return page
+
+    def _help_page(self):
+        page, layout = self._page(self.tr("help"))
         layout.addWidget(self._section_title(self.tr("guidance")))
         guidance = QFrame()
         guidance.setObjectName("panel")
@@ -348,109 +352,6 @@ class WelcomeWindow(QMainWindow):
         guidance_actions.addStretch()
         guidance_layout.addLayout(guidance_actions)
         layout.addWidget(guidance)
-        layout.addStretch()
-        return page
-
-    def _setup_page(self):
-        page, layout = self._page(self.tr("setup"))
-        layout.addWidget(self._section_title(self.tr("setup_tools")))
-        tools = QGridLayout()
-        tools.setSpacing(12)
-        if self.is_live:
-            tools.addWidget(self._action_tile(self.tr("install"), "drive-harddisk", "installer"), 0, 0)
-        tools.addWidget(self._action_tile(self.tr("open_software"), "system-software-install", "package_center"), 0, 1)
-        tools.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 0, 2)
-        tools.addWidget(self._action_tile(self.tr("open_mirrors"), "network-server", "mirrors"), 1, 0)
-        tools.addWidget(self._action_tile(self.tr("open_runtime"), "utilities-system-monitor", "runtime"), 1, 1)
-        tools.addWidget(self._action_tile(self.tr("open_miniforge"), "applications-science", "miniforge"), 1, 2)
-        layout.addLayout(tools)
-        layout.addStretch()
-        return page
-
-    def _software_page(self):
-        page, layout = self._page(self.tr("software"))
-        top = QHBoxLayout()
-        title = self.tr("catalog")
-        applications = self.catalog.get("applications", []) if isinstance(self.catalog, dict) else []
-        applications = [
-            application
-            for application in applications
-            if application.get("installer")
-            and application.get("source") == "arch"
-            and application.get("review", {}).get("status") == "reviewed"
-        ]
-        top.addWidget(self._section_title(title))
-        top.addStretch()
-        top.addWidget(self._button(self.tr("open_shelly"), "system-software-install", "shelly"))
-        top.addWidget(self._button(self.tr("open_software"), "system-software-install", "package_center", primary=True))
-        layout.addLayout(top)
-
-        if not applications:
-            layout.addWidget(QLabel(self.tr("catalog_error")))
-        else:
-            count = QLabel(self.tr("application_count", count=len(applications)))
-            count.setObjectName("muted")
-            layout.addWidget(count)
-            locale_key = self.language if self.language in ("zh_CN",) else "en"
-            for application in sorted(applications, key=lambda item: item.get("presentation", {}).get("order", 0)):
-                card = QFrame()
-                card.setObjectName("panel")
-                card_layout = QHBoxLayout(card)
-                card_layout.setContentsMargins(18, 14, 18, 14)
-                copy = QVBoxLayout()
-                name = QLabel(application.get("name", {}).get(locale_key, application.get("id", "")))
-                name.setObjectName("sectionTitle")
-                description = QLabel(application.get("description", {}).get(locale_key, ""))
-                description.setWordWrap(True)
-                categories = " / ".join(application.get("categories", []))
-                source = QLabel(categories + "  |  " + self.tr("source_arch") + "  |  " + " · ".join(application.get("packages", [])))
-                source.setObjectName("muted")
-                source.setWordWrap(True)
-                copy.addWidget(name)
-                copy.addWidget(description)
-                copy.addWidget(source)
-                card_layout.addLayout(copy, 1)
-                layout.addWidget(card)
-        layout.addStretch()
-        return page
-
-    def _sources_page(self):
-        page, layout = self._page(self.tr("sources"))
-        layout.addWidget(self._section_title(self.tr("source_tools")))
-        tools = QGridLayout()
-        tools.setSpacing(12)
-        tools.addWidget(self._action_tile(self.tr("open_mirrors"), "network-server", "mirrors"), 0, 0)
-        tools.addWidget(self._action_tile(self.tr("open_runtime"), "utilities-system-monitor", "runtime"), 0, 1)
-        tools.addWidget(self._action_tile(self.tr("open_miniforge"), "applications-science", "miniforge"), 0, 2)
-        tools.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 1, 0)
-        layout.addLayout(tools)
-        layout.addStretch()
-        return page
-
-    def _system_page(self):
-        page, layout = self._page(self.tr("system"))
-        layout.addWidget(self._section_title(self.tr("system_tools")))
-        tools = QGridLayout()
-        tools.setSpacing(12)
-        tools.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 0, 0)
-        tools.addWidget(self._action_tile(self.tr("system_info"), "hwinfo", "info"), 0, 1)
-        tools.addWidget(self._action_tile(self.tr("snapshots"), "document-revert", "snapshots"), 0, 2)
-        layout.addLayout(tools)
-
-        layout.addWidget(self._section_title(self.tr("updates")))
-        update_panel = QFrame()
-        update_panel.setObjectName("panel")
-        row = QHBoxLayout(update_panel)
-        description = QLabel(self.tr("updates_body"))
-        description.setWordWrap(True)
-        row.addWidget(description, 1)
-        row.addWidget(self._button(self.tr("open_software"), "system-software-update", "package_center"))
-        layout.addWidget(update_panel)
-        layout.addStretch()
-        return page
-
-    def _resources_page(self):
-        page, layout = self._page(self.tr("resources"))
         layout.addWidget(self._section_title(self.tr("docs")))
         layout.addWidget(self._link_row(self.tr("wiki"), "help-contents", "wiki"))
         layout.addWidget(self._link_row(self.tr("arch_wiki"), "internet-web-browser", "arch_wiki"))
@@ -465,6 +366,17 @@ class WelcomeWindow(QMainWindow):
         show_login.toggled.connect(lambda checked: self.settings.setValue("showAtLogin", checked))
         layout.addWidget(show_login)
         return page
+
+    def _installed_state(self):
+        if not isinstance(self.receipt, dict):
+            return "health_attention", "completion_unknown"
+        receipt_status = self.receipt.get("status")
+        if receipt_status in ("installed", "none"):
+            health = "health_ready" if isinstance(self.catalog, dict) else "health_attention"
+            return health, "completion_complete"
+        if receipt_status == "deferred":
+            return "health_attention", "completion_pending"
+        return "health_attention", "completion_unknown"
 
     def _section_title(self, text):
         label = QLabel(text)
