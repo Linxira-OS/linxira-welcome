@@ -44,6 +44,13 @@ LOGO_PATH = Path(os.environ.get("LINXIRA_LOGO_PATH", "/usr/share/linxira/linxira
 I18N_PATH = Path(
     os.environ.get("LINXIRA_WELCOME_I18N_PATH", "/usr/share/linxira/welcome/i18n")
 )
+UPDATE_STATUS_PATH = Path(
+    os.environ.get(
+        "LINXIRA_UPDATE_STATUS_PATH",
+        Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state"))
+        / "linxira-update/status.json",
+    )
+)
 
 LANGUAGES = {
     "en": "English",
@@ -72,6 +79,7 @@ APPS = {
     "component_manager": ("/usr/bin/linxira-component-manager", []),
     "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
     "settings": ("/usr/bin/systemsettings", []),
+    "update": ("/usr/bin/linxira-update", []),
 }
 
 TEXT = {
@@ -89,6 +97,7 @@ TEXT = {
         "open_components": "Component Manager",
         "open_config": "Config CLI",
         "open_settings": "System Settings",
+        "open_update": "System Update",
         "selection": "Installation selection",
         "selection_none": "No optional profiles or applications selected",
         "docs": "Documentation",
@@ -118,6 +127,12 @@ TEXT = {
         "offline": "Offline",
         "catalog_available": "Available",
         "catalog_unavailable": "Unavailable",
+        "available_updates": "Available updates",
+        "last_update_check": "Last update check",
+        "reboot_required": "Reboot required",
+        "yes": "Yes",
+        "no": "No",
+        "unknown": "Unknown",
         "guidance": "Guidance and maintenance",
         "guidance_body": "Review Arch Linux News before system-wide updates and use Linxira Wiki for project-specific workflows.",
         "view_news": "View Arch Linux News",
@@ -159,6 +174,7 @@ class WelcomeWindow(QMainWindow):
         self.text = load_translation(self.language)
         self.catalog = read_json(CATALOG_PATH)
         self.receipt = read_json(RECEIPT_PATH)
+        self.update_status = read_json(UPDATE_STATUS_PATH)
         self.is_live = Path("/run/archiso").exists() or os.access(LIVE_INSTALLER, os.X_OK)
         self.setWindowTitle("Linxira Welcome")
         self.logo_icon = QIcon(str(LOGO_PATH)) if LOGO_PATH.is_file() else QIcon.fromTheme("linxira")
@@ -295,6 +311,8 @@ class WelcomeWindow(QMainWindow):
         actions.addWidget(self._action_tile(self.tr("open_components"), "preferences-system-software", "component_manager"), 0, 1)
         actions.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 1, 0)
         actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 1, 1)
+        if not self.is_live:
+            actions.addWidget(self._action_tile(self.tr("open_update"), "system-software-update", "update"), 2, 0, 1, 2)
         layout.addLayout(actions)
         layout.addStretch()
         return page
@@ -309,6 +327,7 @@ class WelcomeWindow(QMainWindow):
         network = self.tr("connected") if self._network_connected() else self.tr("offline")
         catalog_status = self.tr("catalog_available") if isinstance(self.catalog, dict) else self.tr("catalog_unavailable")
         receipt_status = self.receipt.get("status", self.tr("receipt_missing")) if isinstance(self.receipt, dict) else self.tr("receipt_missing")
+        update_count, last_check, reboot_required = self._update_state()
         for column, (label, value) in enumerate(
             (
                 (self.tr("release"), release),
@@ -316,6 +335,9 @@ class WelcomeWindow(QMainWindow):
                 (self.tr("network"), network),
                 (self.tr("catalog_review"), f"{catalog_status} / {reviewed}"),
                 (self.tr("receipt_status"), receipt_status),
+                (self.tr("available_updates"), update_count),
+                (self.tr("last_update_check"), last_check),
+                (self.tr("reboot_required"), reboot_required),
             )
         ):
             status.addWidget(self._status_tile(label, value), column // 3, column % 3)
@@ -377,6 +399,18 @@ class WelcomeWindow(QMainWindow):
         if receipt_status == "deferred":
             return "health_attention", "completion_pending"
         return "health_attention", "completion_unknown"
+
+    def _update_state(self):
+        if not isinstance(self.update_status, dict) or self.update_status.get("version") != 1:
+            unknown = self.tr("unknown")
+            return unknown, unknown, unknown
+        count = self.update_status.get("available_update_count")
+        last_check = self.update_status.get("last_check")
+        reboot = self.update_status.get("reboot_required")
+        count_text = str(count) if isinstance(count, int) and not isinstance(count, bool) and count >= 0 else self.tr("unknown")
+        last_check_text = last_check if isinstance(last_check, str) and last_check else self.tr("unknown")
+        reboot_text = self.tr("yes") if reboot is True else self.tr("no") if reboot is False else self.tr("unknown")
+        return count_text, last_check_text, reboot_text
 
     def _section_title(self, text):
         label = QLabel(text)

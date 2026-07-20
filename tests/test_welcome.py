@@ -48,9 +48,10 @@ class WelcomeTests(unittest.TestCase):
         apps = assignment_value(self.source, "APPS")
         self.assertEqual(
             set(apps),
-            {"installer", "package_center", "component_manager", "config", "settings"},
+            {"installer", "package_center", "component_manager", "config", "settings", "update"},
         )
         self.assertEqual(apps["component_manager"], ("/usr/bin/linxira-component-manager", []))
+        self.assertEqual(apps["update"], ("/usr/bin/linxira-update", []))
         self.assertEqual(
             apps["config"],
             ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
@@ -86,6 +87,8 @@ class WelcomeTests(unittest.TestCase):
         required = {
             "home", "status", "help", "install", "launchers",
             "open_software", "open_components", "open_config", "open_settings",
+            "open_update", "available_updates", "last_update_check", "reboot_required",
+            "yes", "no", "unknown",
             "health", "health_ready", "health_attention", "first_completion",
             "completion_complete", "completion_pending", "completion_unknown",
             "workstation_status", "selection", "docs", "show_login", "launch_error",
@@ -95,6 +98,12 @@ class WelcomeTests(unittest.TestCase):
         for path in translations:
             document = json.loads(path.read_text(encoding="utf-8"))
             self.assertTrue(required.issubset(document), path.name)
+
+    def test_reads_the_updater_status_contract(self):
+        self.assertIn("LINXIRA_UPDATE_STATUS_PATH", self.source)
+        self.assertIn('"available_update_count"', self.source)
+        self.assertIn('"last_check"', self.source)
+        self.assertIn('"reboot_required"', self.source)
 
 
 if __name__ == "__main__":
