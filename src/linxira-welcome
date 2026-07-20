@@ -69,7 +69,7 @@ LINKS = {
 APPS = {
     "installer": (LIVE_INSTALLER, []),
     "shelly": ("/usr/bin/shelly-ui", []),
-    "package_center": ("/usr/bin/linxira-software-center", []),
+    "package_center": ("/usr/bin/linxira-package-center", []),
     "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "help"]),
     "mirrors": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "mirror", "list"]),
     "runtime": ("/usr/bin/konsole", ["--hold", "-e", "/usr/local/bin/linxira-config", "runtime", "status"]),
