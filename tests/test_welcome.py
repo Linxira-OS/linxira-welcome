@@ -48,10 +48,11 @@ class WelcomeTests(unittest.TestCase):
         apps = assignment_value(self.source, "APPS")
         self.assertEqual(
             set(apps),
-            {"installer", "package_center", "component_manager", "config", "settings", "update"},
+            {"installer", "package_center", "component_manager", "config", "settings", "update", "gaming"},
         )
         self.assertEqual(apps["component_manager"], ("/usr/bin/linxira-component-manager", []))
         self.assertEqual(apps["update"], ("/usr/bin/linxira-update", []))
+        self.assertEqual(apps["gaming"], ("/usr/bin/linxira-gaming-manager", []))
         self.assertEqual(
             apps["config"],
             ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
@@ -87,7 +88,7 @@ class WelcomeTests(unittest.TestCase):
         required = {
             "home", "status", "help", "install", "launchers",
             "open_software", "open_components", "open_config", "open_settings",
-            "open_update", "available_updates", "last_update_check", "reboot_required",
+            "open_update", "open_gaming", "available_updates", "last_update_check", "reboot_required",
             "yes", "no", "unknown",
             "health", "health_ready", "health_attention", "first_completion",
             "completion_complete", "completion_pending", "completion_unknown",

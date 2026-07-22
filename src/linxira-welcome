@@ -80,6 +80,7 @@ APPS = {
     "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
     "settings": ("/usr/bin/systemsettings", []),
     "update": ("/usr/bin/linxira-update", []),
+    "gaming": ("/usr/bin/linxira-gaming-manager", []),
 }
 
 TEXT = {
@@ -98,6 +99,7 @@ TEXT = {
         "open_config": "Config CLI",
         "open_settings": "System Settings",
         "open_update": "System Update",
+        "open_gaming": "Gaming Manager",
         "selection": "Installation selection",
         "selection_none": "No optional profiles or applications selected",
         "docs": "Documentation",
@@ -312,7 +314,8 @@ class WelcomeWindow(QMainWindow):
         actions.addWidget(self._action_tile(self.tr("open_config"), "utilities-terminal", "config"), 1, 0)
         actions.addWidget(self._action_tile(self.tr("open_settings"), "preferences-system", "settings"), 1, 1)
         if not self.is_live:
-            actions.addWidget(self._action_tile(self.tr("open_update"), "system-software-update", "update"), 2, 0, 1, 2)
+            actions.addWidget(self._action_tile(self.tr("open_update"), "system-software-update", "update"), 2, 0)
+            actions.addWidget(self._action_tile(self.tr("open_gaming"), "applications-games", "gaming"), 2, 1)
         layout.addLayout(actions)
         layout.addStretch()
         return page

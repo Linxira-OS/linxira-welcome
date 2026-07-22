@@ -2,7 +2,7 @@
   "home": "홈", "status": "상태", "help": "도움말",
   "subtitle_live": "Live 과학 워크스테이션", "subtitle_installed": "과학 워크스테이션 시작",
   "live_title": "설치 준비 완료", "live_body": "설치 중에도 Plasma 데스크톱을 사용할 수 있습니다.", "install": "Linxira OS 설치",
-  "launchers": "Linxira 도구 열기", "open_software": "패키지 센터", "open_components": "구성 요소 관리자", "open_config": "Config CLI", "open_settings": "시스템 설정", "open_update": "시스템 업데이트",
+  "launchers": "Linxira 도구 열기", "open_software": "패키지 센터", "open_components": "구성 요소 관리자", "open_config": "Config CLI", "open_settings": "시스템 설정", "open_update": "시스템 업데이트", "open_gaming": "게임 관리자",
   "workstation_status": "워크스테이션 상태", "health": "상태", "health_ready": "준비됨", "health_attention": "확인 필요", "first_completion": "최초 완료", "completion_complete": "완료", "completion_pending": "대기 중", "completion_unknown": "기록 없음",
   "release": "릴리스", "kernel": "커널", "network": "네트워크", "catalog_review": "카탈로그 검토", "connected": "연결됨", "offline": "오프라인", "catalog_available": "사용 가능", "catalog_unavailable": "사용 불가", "receipt_status": "설치 영수증", "receipt_missing": "사용 불가", "available_updates": "사용 가능한 업데이트", "last_update_check": "마지막 업데이트 확인", "reboot_required": "재시작 필요", "yes": "예", "no": "아니요", "unknown": "알 수 없음",
   "selection": "설치 선택", "selection_none": "선택한 추가 프로필이나 애플리케이션이 없습니다",
