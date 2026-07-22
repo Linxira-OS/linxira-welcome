@@ -2,7 +2,7 @@
   "home": "首頁", "status": "狀態", "help": "說明",
   "subtitle_live": "Live 科研工作站", "subtitle_installed": "科研工作站歡迎頁",
   "live_title": "可以開始安裝", "live_body": "安裝程式執行時，Plasma 桌面仍可正常使用。", "install": "安裝 Linxira OS",
-  "launchers": "開啟 Linxira 工具", "open_software": "軟體中心", "open_components": "元件管理器", "open_config": "Config CLI", "open_settings": "系統設定", "open_update": "系統更新", "open_gaming": "遊戲管理器", "open_recovery": "復原診斷",
+  "launchers": "開啟 Linxira 工具", "open_software": "軟體中心", "open_components": "元件管理器", "open_config": "Config CLI", "open_settings": "系統設定", "open_update": "系統更新", "open_gaming": "遊戲管理器", "open_hardware": "硬體和驅動程式", "open_recovery": "復原診斷",
   "workstation_status": "工作站狀態", "health": "健康狀態", "health_ready": "正常", "health_attention": "需要留意", "first_completion": "首次完成", "completion_complete": "已完成", "completion_pending": "待完成", "completion_unknown": "未記錄",
   "release": "版本", "kernel": "核心", "network": "網路", "catalog_review": "目錄審核", "connected": "已連線", "offline": "離線", "catalog_available": "可用", "catalog_unavailable": "不可用", "receipt_status": "安裝收據", "receipt_missing": "不可用", "available_updates": "可用更新", "last_update_check": "上次更新檢查", "reboot_required": "需要重新啟動", "yes": "是", "no": "否", "unknown": "未知",
   "selection": "安裝元件選擇", "selection_none": "未選擇選用設定或應用程式",
