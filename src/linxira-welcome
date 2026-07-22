@@ -81,6 +81,7 @@ APPS = {
     "settings": ("/usr/bin/systemsettings", []),
     "update": ("/usr/bin/linxira-update", []),
     "gaming": ("/usr/bin/linxira-gaming-manager", []),
+    "recovery": ("/usr/bin/linxira-recovery-diagnostics", []),
 }
 
 TEXT = {
@@ -100,6 +101,7 @@ TEXT = {
         "open_settings": "System Settings",
         "open_update": "System Update",
         "open_gaming": "Gaming Manager",
+        "open_recovery": "Recovery Diagnostics",
         "selection": "Installation selection",
         "selection_none": "No optional profiles or applications selected",
         "docs": "Documentation",
@@ -316,6 +318,7 @@ class WelcomeWindow(QMainWindow):
         if not self.is_live:
             actions.addWidget(self._action_tile(self.tr("open_update"), "system-software-update", "update"), 2, 0)
             actions.addWidget(self._action_tile(self.tr("open_gaming"), "applications-games", "gaming"), 2, 1)
+            actions.addWidget(self._action_tile(self.tr("open_recovery"), "tools-report-bug", "recovery"), 3, 0, 1, 2)
         layout.addLayout(actions)
         layout.addStretch()
         return page

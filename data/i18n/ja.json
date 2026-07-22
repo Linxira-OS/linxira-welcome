@@ -2,7 +2,7 @@
   "home": "ホーム", "status": "状態", "help": "ヘルプ",
   "subtitle_live": "Live 科学ワークステーション", "subtitle_installed": "科学ワークステーションへようこそ",
   "live_title": "インストールできます", "live_body": "インストール中も Plasma デスクトップを利用できます。", "install": "Linxira OS をインストール",
-  "launchers": "Linxira ツールを開く", "open_software": "パッケージセンター", "open_components": "コンポーネントマネージャー", "open_config": "Config CLI", "open_settings": "システム設定", "open_update": "システム更新", "open_gaming": "ゲームマネージャー",
+  "launchers": "Linxira ツールを開く", "open_software": "パッケージセンター", "open_components": "コンポーネントマネージャー", "open_config": "Config CLI", "open_settings": "システム設定", "open_update": "システム更新", "open_gaming": "ゲームマネージャー", "open_recovery": "復旧診断",
   "workstation_status": "ワークステーション状態", "health": "正常性", "health_ready": "準備完了", "health_attention": "確認が必要", "first_completion": "初回完了", "completion_complete": "完了", "completion_pending": "保留中", "completion_unknown": "記録なし",
   "release": "リリース", "kernel": "カーネル", "network": "ネットワーク", "catalog_review": "カタログ確認", "connected": "接続済み", "offline": "オフライン", "catalog_available": "利用可能", "catalog_unavailable": "利用不可", "receipt_status": "インストール記録", "receipt_missing": "利用不可", "available_updates": "利用可能な更新", "last_update_check": "最終更新確認", "reboot_required": "再起動が必要", "yes": "はい", "no": "いいえ", "unknown": "不明",
   "selection": "インストール選択", "selection_none": "オプションのプロファイルまたはアプリケーションは未選択です",
