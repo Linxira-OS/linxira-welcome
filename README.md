@@ -16,10 +16,11 @@ The three pages follow the authoritative Phase 1 product boundary:
   selection metadata.
 - **Help** provides reviewed documentation links and the login preference.
 
-Home has at most four stable tool launchers: Package Center, Component Manager,
-Config CLI in Konsole, and System Settings. Applications, source/runtime
-subcommands, and duplicate system-tool inventories remain owned by their
-dedicated products and are not reproduced in Welcome.
+Home exposes fixed tool launchers for Shelly, Quick System Software Setup,
+Quick System Runtime Setup, Config CLI in Konsole, System Settings, and installed
+system maintenance tools. Applications, source/runtime subcommands, and duplicate
+system-tool inventories remain owned by their dedicated products and are not
+reproduced in Welcome.
 
 ## Runtime dependencies
 
