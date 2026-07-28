@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.linxira.Welcome</id>
+  <name>Linxira Welcome</name>
+  <summary>Open Linxira system tools, status, and support resources</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <launchable type="desktop-id">org.linxira.Welcome.desktop</launchable>
+  <provides><binary>linxira-welcome</binary></provides>
+  <description>
+    <p>Linxira Welcome provides workstation status, reviewed Linxira tool launchers, maintenance guidance, and project support links.</p>
+  </description>
+  <developer id="org.linxira"><name>Linxira OS contributors</name></developer>
+  <url type="homepage">https://linxira-os.github.io/</url>
+  <url type="vcs-browser">https://github.com/Linxira-OS/linxira-welcome</url>
+  <url type="bugtracker">https://github.com/Linxira-OS/linxira-welcome/issues</url>
+  <url type="help">https://linxira-os.github.io/linxira-wiki/</url>
+  <releases><release version="1.0.0" date="2026-07-26" /></releases>
+  <content_rating type="oars-1.1" />
+</component>

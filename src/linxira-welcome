@@ -51,6 +51,7 @@ UPDATE_STATUS_PATH = Path(
         / "linxira-update/status.json",
     )
 )
+APP_VERSION = "1.0.0"
 
 LANGUAGES = {
     "en": "English",
@@ -71,6 +72,8 @@ LINKS = {
     "arch_news": "https://archlinux.org/news/",
     "arch_wiki": "https://wiki.archlinux.org/",
     "github": "https://github.com/Linxira-OS",
+    "repository": "https://github.com/Linxira-OS/linxira-welcome",
+    "issues": "https://github.com/Linxira-OS/linxira-welcome/issues",
 }
 
 APPS = {
@@ -115,6 +118,10 @@ TEXT = {
         "arch_news": "Arch Linux News",
         "arch_wiki": "ArchWiki",
         "github": "Linxira on GitHub",
+        "about": "About Linxira Welcome",
+        "about_details": "Linxira Welcome version {version}<br>Developed by Linxira OS contributors.<br>Licensed under the MIT License.",
+        "repository": "Project repository",
+        "issues": "Report an issue",
         "show_login": "Show Welcome at login",
         "launch_error": "Could not open {name}.",
         "workstation_status": "Workstation status",
@@ -391,8 +398,13 @@ class WelcomeWindow(QMainWindow):
         layout.addWidget(self._link_row(self.tr("arch_wiki"), "internet-web-browser", "arch_wiki"))
         layout.addWidget(self._link_row(self.tr("arch_news"), "view-calendar-news", "arch_news"))
         layout.addWidget(self._section_title(self.tr("project")))
+        about = QLabel(self.tr("about_details", version=APP_VERSION))
+        about.setTextFormat(Qt.RichText)
+        about.setWordWrap(True)
+        layout.addWidget(about)
         layout.addWidget(self._link_row(self.tr("website"), "internet-web-browser", "website"))
-        layout.addWidget(self._link_row(self.tr("github"), "applications-development", "github"))
+        layout.addWidget(self._link_row(self.tr("repository"), "applications-development", "repository"))
+        layout.addWidget(self._link_row(self.tr("issues"), "tools-report-bug", "issues"))
         layout.addStretch()
 
         show_login = QCheckBox(self.tr("show_login"))
