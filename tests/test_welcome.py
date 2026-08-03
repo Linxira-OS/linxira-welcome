@@ -56,7 +56,7 @@ class WelcomeTests(unittest.TestCase):
         self.assertEqual(apps["update"], ("/usr/bin/linxira-update", []))
         self.assertEqual(apps["gaming"], ("/usr/bin/linxira-gaming-manager", []))
         self.assertEqual(apps["hardware"], ("/usr/bin/linxira-hardware-driver-manager", []))
-        self.assertEqual(apps["recovery"], ("/usr/bin/linxira-recovery-diagnostics", []))
+        self.assertEqual(apps["recovery"], ("/usr/bin/linxira-recovery-diagnostics-gui", []))
         self.assertEqual(
             apps["config"],
             ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),

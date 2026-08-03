@@ -86,7 +86,7 @@ APPS = {
     "update": ("/usr/bin/linxira-update", []),
     "gaming": ("/usr/bin/linxira-gaming-manager", []),
     "hardware": ("/usr/bin/linxira-hardware-driver-manager", []),
-    "recovery": ("/usr/bin/linxira-recovery-diagnostics", []),
+    "recovery": ("/usr/bin/linxira-recovery-diagnostics-gui", []),
 }
 
 TEXT = {
