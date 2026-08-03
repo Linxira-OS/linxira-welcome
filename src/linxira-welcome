@@ -81,7 +81,7 @@ APPS = {
     "shelly": ("/usr/bin/shelly-ui", []),
     "package_center": ("/usr/bin/linxira-package-center", []),
     "component_manager": ("/usr/bin/linxira-component-manager", []),
-    "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
+    "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
     "settings": ("/usr/bin/systemsettings", []),
     "update": ("/usr/bin/linxira-update", []),
     "gaming": ("/usr/bin/linxira-gaming-manager", []),

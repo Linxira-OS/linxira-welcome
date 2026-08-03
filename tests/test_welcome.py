@@ -59,7 +59,7 @@ class WelcomeTests(unittest.TestCase):
         self.assertEqual(apps["recovery"], ("/usr/bin/linxira-recovery-diagnostics-gui", []))
         self.assertEqual(
             apps["config"],
-            ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "help"]),
+            ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
         )
         self.assertIn("QProcess.startDetached(executable, arguments)", self.source)
 
