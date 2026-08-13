@@ -59,17 +59,11 @@ PENDING_INSTALL_PATH = Path(
 )
 APP_VERSION = "1.0.0"
 
+# 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
     "en": "English",
     "zh_CN": "简体中文",
     "zh_TW": "繁體中文",
-    "de": "Deutsch",
-    "es": "Español",
-    "fr": "Français",
-    "ja": "日本語",
-    "ko": "한국어",
-    "pt_BR": "Português (Brasil)",
-    "ru": "Русский",
 }
 
 LINKS = {
@@ -552,6 +546,13 @@ class WelcomeWindow(QMainWindow):
 
     def _launch_app(self, app, display_name):
         executable, arguments = APPS[app]
+        if app == "installer":
+            # 2026-08-13: 语言联动 —— welcome 选择的语言写入临时文件,
+            # linxira-installer-shell 读取后以该 LANG 启动 calamares。
+            try:
+                Path("/tmp/linxira-installer-lang").write_text(self.language, encoding="utf-8")
+            except OSError:
+                pass
         if not QProcess.startDetached(executable, arguments):
             QMessageBox.warning(self, "Linxira Welcome", self.tr("launch_error", name=display_name))
 
