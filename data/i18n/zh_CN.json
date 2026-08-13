@@ -9,5 +9,6 @@
   "guidance": "维护与指引", "guidance_body": "全系统更新前请查看 Arch Linux 新闻；Linxira 专属工作流请参考 Linxira Wiki。", "view_news": "查看 Arch Linux 新闻", "open_wiki": "打开 Linxira Wiki",
   "pending_install_title": "继续安装剩余软件", "pending_install_body": "安装时选择了 {count} 个需要联网的软件，因当时没有可用网络而被延后。打开软件设置即可完成安装。", "pending_continue": "继续安装",
   "docs": "文档", "project": "项目", "website": "Linxira 网站", "wiki": "Linxira Wiki", "arch_news": "Arch Linux 新闻", "arch_wiki": "ArchWiki", "github": "Linxira GitHub",
-  "show_login": "登录时显示 Welcome", "launch_error": "无法打开{name}。"
+  "show_login": "登录时显示 Welcome", "launch_error": "无法打开{name}。",
+  "driver_setup_title": "快速配置驱动", "driver_setup_body": "打开「硬件和驱动」：自动检测硬件并安装匹配驱动。Linxira 使用通用 Linux 内核，无需构建定制内核。"
 }

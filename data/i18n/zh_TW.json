@@ -8,5 +8,6 @@
   "selection": "安裝元件選擇", "selection_none": "未選擇選用設定或應用程式",
   "guidance": "維護與指引", "guidance_body": "全系統更新前請查看 Arch Linux 新聞；Linxira 專屬工作流程請參考 Linxira Wiki。", "view_news": "查看 Arch Linux 新聞", "open_wiki": "開啟 Linxira Wiki",
   "docs": "文件", "project": "專案", "website": "Linxira 網站", "wiki": "Linxira Wiki", "arch_news": "Arch Linux 新聞", "arch_wiki": "ArchWiki", "github": "Linxira GitHub",
-  "show_login": "登入時顯示 Welcome", "launch_error": "無法開啟{name}。"
+  "show_login": "登入時顯示 Welcome", "launch_error": "無法開啟{name}。",
+  "driver_setup_title": "快速設定驅動", "driver_setup_body": "開啟「硬體和驅動」：自動偵測硬體並安裝相符驅動。Linxira 使用通用 Linux 核心，無需建置自訂核心。"
 }

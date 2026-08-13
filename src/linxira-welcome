@@ -161,6 +161,8 @@ TEXT = {
         "pending_install_title": "Finish installing remaining software",
         "pending_install_body": "{count} item(s) selected during installation were deferred because they require a network. Open the software setup to finish them.",
         "pending_continue": "Continue installation",
+        "driver_setup_title": "Quick driver setup",
+        "driver_setup_body": "Open Hardware and Drivers: it auto-detects your hardware and installs matching drivers. Linxira ships the generic Linux kernel — no custom kernel build is needed.",
     },
 }
 
@@ -363,6 +365,24 @@ class WelcomeWindow(QMainWindow):
             actions.addWidget(self._action_tile(self.tr("open_hardware"), "preferences-devices", "hardware"), 3, 1)
             actions.addWidget(self._action_tile(self.tr("open_recovery"), "tools-report-bug", "recovery"), 4, 0)
         layout.addLayout(actions)
+        if not self.is_live:
+            # 2026-08-13: 驱动快速配置引导(lhwd 命令 + 通用内核说明, 不涉及 CachyOS 式内核构建)
+            driver = QFrame()
+            driver.setObjectName("driverBanner")
+            driver_row = QHBoxLayout(driver)
+            driver_row.setContentsMargins(22, 18, 22, 18)
+            driver_copy = QVBoxLayout()
+            driver_title = QLabel(self.tr("driver_setup_title"))
+            driver_title.setObjectName("sectionTitle")
+            driver_body = QLabel(self.tr("driver_setup_body"))
+            driver_body.setWordWrap(True)
+            driver_copy.addWidget(driver_title)
+            driver_copy.addWidget(driver_body)
+            driver_row.addLayout(driver_copy, 1)
+            driver_row.addWidget(
+                self._button(self.tr("open_hardware"), "preferences-devices", "hardware", primary=True)
+            )
+            layout.addWidget(driver)
         layout.addStretch()
         return page
 
@@ -553,6 +573,8 @@ class WelcomeWindow(QMainWindow):
             QLabel#statusValue { font-size: 14px; font-weight: 600; }
             QFrame#installBanner { background: #123f3d; color: white; border-left: 4px solid #20b8a6; border-radius: 6px; }
             QFrame#installBanner QLabel { color: white; }
+            QFrame#driverBanner { background: #1d2f45; color: white; border-left: 4px solid #3d7edb; border-radius: 6px; }
+            QFrame#driverBanner QLabel { color: white; }
             QPushButton { min-height: 34px; padding: 5px 13px; border-radius: 5px; }
             QPushButton[primary="true"] { background: #147f78; color: white; border: 1px solid #147f78; font-weight: 600; }
             QPushButton[primary="true"]:hover { background: #106c66; }
