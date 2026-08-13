@@ -366,7 +366,7 @@ class WelcomeWindow(QMainWindow):
             actions.addWidget(self._action_tile(self.tr("open_recovery"), "tools-report-bug", "recovery"), 4, 0)
         layout.addLayout(actions)
         if not self.is_live:
-            # 2026-08-13: 驱动快速配置引导(lhwd 命令 + 通用内核说明, 不涉及 CachyOS 式内核构建)
+            # 2026-08-13: 驱动快速配置引导(lhwd 命令 + 通用内核说明, 不涉及定制内核构建)
             driver = QFrame()
             driver.setObjectName("driverBanner")
             driver_row = QHBoxLayout(driver)
