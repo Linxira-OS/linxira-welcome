@@ -508,15 +508,33 @@ class WelcomeWindow(QMainWindow):
         return frame
 
     def _network_connected(self):
+        # 快速路径: 接口检查(非 lo 接口 operstate up)
         network_root = Path("/sys/class/net")
         try:
-            return any(
+            interfaces_up = any(
                 interface.name != "lo"
                 and (interface / "operstate").read_text(encoding="utf-8").strip() == "up"
                 for interface in network_root.iterdir()
             )
         except OSError:
+            interfaces_up = False
+        if not interfaces_up:
             return False
+        # 真实可达性: 任一探测目标 443 通(与安装器一致: tuna/arch 官方/aliyun)
+        # 2026-08-14: 接口 up 不代表有外网(路由器在线但无出口/未认证网络), 加 TCP 探测
+        import socket
+
+        for host in (
+            "mirrors.tuna.tsinghua.edu.cn",
+            "mirror.archlinux.org",
+            "mirrors.aliyun.com",
+        ):
+            try:
+                with socket.create_connection((host, 443), timeout=1.5):
+                    return True
+            except OSError:
+                continue
+        return False
 
     def _button(self, text, icon, app, primary=False):
         button = QPushButton(QIcon.fromTheme(icon), text)
