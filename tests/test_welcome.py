@@ -86,7 +86,31 @@ class WelcomeTests(unittest.TestCase):
         self.assertIn('self.tr("health")', self.source)
         self.assertIn('self.tr("first_completion")', self.source)
         self.assertIn('receipt_status in ("installed", "none")', self.source)
-        self.assertIn('receipt_status == "deferred"', self.source)
+        # 2026-09-20: 回执恒为 "installed", 延后完成状态由显式延后条目推导;
+        # 原死代码分支 status=="deferred" 移除。
+        self.assertNotIn('receipt_status == "deferred"', self.source)
+        self.assertIn('_deferred_component_count', self.source)
+        self.assertIn('"explicitly-deferred"', self.source)
+
+    def test_reads_catalog_v3_before_legacy_v2(self):
+        # 2026-09-20: v3 镜像只装 catalog-v3.json, 旧默认 v2 路径导致
+        # 健康状态恒为"需要关注"; 现在优先 v3, 保留 v2 回退。
+        self.assertIn("CATALOG_PATHS", self.source)
+        self.assertIn('"/usr/share/linxira/catalog/catalog-v3.json"', self.source)
+        self.assertIn('Path("/usr/share/linxira/catalog/catalog-v2.json")', self.source)
+        self.assertNotIn('catalog/catalog-v2.json"\n    )\n)', self.source)
+
+    def test_component_deferred_banner_is_wired_and_translated(self):
+        for key in (
+            "component_deferred_title",
+            "component_deferred_body",
+            "component_deferred_continue",
+        ):
+            self.assertIn(f'"{key}"', self.source)
+            for path in sorted(I18N.glob("zh_*.json")):
+                document = json.loads(path.read_text(encoding="utf-8"))
+                self.assertIn(key, document, path.name)
+        self.assertIn('"component_manager"', self.source)
 
     def test_all_translations_cover_the_reduced_surface(self):
         required = {

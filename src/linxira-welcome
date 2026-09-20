@@ -30,8 +30,13 @@ from PySide6.QtWidgets import (
 )
 
 
-CATALOG_PATH = Path(
-    os.environ.get("LINXIRA_CATALOG_PATH", "/usr/share/linxira/catalog/catalog-v2.json")
+CATALOG_PATHS = (
+    Path(
+        os.environ.get(
+            "LINXIRA_CATALOG_PATH", "/usr/share/linxira/catalog/catalog-v3.json"
+        )
+    ),
+    Path("/usr/share/linxira/catalog/catalog-v2.json"),
 )
 RECEIPT_PATH = Path(
     os.environ.get(
@@ -155,6 +160,9 @@ TEXT = {
         "pending_install_title": "Finish installing remaining software",
         "pending_install_body": "{count} item(s) selected during installation were deferred because they require a network. Open the software setup to finish them.",
         "pending_continue": "Continue installation",
+        "component_deferred_title": "Finish installing deferred components",
+        "component_deferred_body": "{count} system component(s) selected during installation were deferred because they require a network. Open Quick System Runtime Setup to finish them — the deferred items are already pre-selected.",
+        "component_deferred_continue": "Continue setup",
         "driver_setup_title": "Quick driver setup",
         "driver_setup_body": "Open Hardware and Drivers: it auto-detects your hardware and installs matching drivers. Linxira ships the generic Linux kernel — no custom kernel build is needed.",
     },
@@ -167,6 +175,14 @@ def read_json(path):
             return json.load(stream)
     except (OSError, json.JSONDecodeError):
         return None
+
+
+def _read_catalog():
+    for path in CATALOG_PATHS:
+        data = read_json(path)
+        if data is not None:
+            return data
+    return None
 
 
 def system_locale():
@@ -192,7 +208,7 @@ class WelcomeWindow(QMainWindow):
         preferred_language = self.settings.value("language", system_locale())
         self.language = preferred_language if preferred_language in LANGUAGES else "en"
         self.text = load_translation(self.language)
-        self.catalog = read_json(CATALOG_PATH)
+        self.catalog = _read_catalog()
         self.receipt = read_json(RECEIPT_PATH)
         self.pending_install = read_json(PENDING_INSTALL_PATH)
         self.update_status = read_json(UPDATE_STATUS_PATH)
@@ -343,6 +359,26 @@ class WelcomeWindow(QMainWindow):
                     )
                 )
                 layout.addWidget(banner)
+            deferred_count = self._deferred_component_count()
+            if deferred_count:
+                banner = QFrame()
+                banner.setObjectName("installBanner")
+                row = QHBoxLayout(banner)
+                row.setContentsMargins(22, 18, 22, 18)
+                copy = QVBoxLayout()
+                title = QLabel(self.tr("component_deferred_title"))
+                title.setObjectName("sectionTitle")
+                body = QLabel(self.tr("component_deferred_body", count=deferred_count))
+                body.setWordWrap(True)
+                copy.addWidget(title)
+                copy.addWidget(body)
+                row.addLayout(copy, 1)
+                row.addWidget(
+                    self._button(
+                        self.tr("component_deferred_continue"), "system-run", "component_manager", primary=True
+                    )
+                )
+                layout.addWidget(banner)
 
         layout.addWidget(self._section_title(self.tr("launchers")))
         actions = QGridLayout()
@@ -470,11 +506,53 @@ class WelcomeWindow(QMainWindow):
             return "health_attention", "completion_unknown"
         receipt_status = self.receipt.get("status")
         if receipt_status in ("installed", "none"):
-            health = "health_ready" if isinstance(self.catalog, dict) else "health_attention"
-            return health, "completion_complete"
-        if receipt_status == "deferred":
-            return "health_attention", "completion_pending"
+            # 2026-09-20: 回执恒为 "installed"; 待完成以 itemStatuses/pendingItems
+            # 中的显式延后为准(原 status=="deferred" 分支永远不会触发)。
+            deferred = self._deferred_component_count() > 0
+            health = (
+                "health_ready"
+                if isinstance(self.catalog, dict) and not deferred
+                else "health_attention"
+            )
+            return health, "completion_pending" if deferred else "completion_complete"
         return "health_attention", "completion_unknown"
+
+    def _catalog_section_ids(self, section):
+        catalog = self.catalog if isinstance(self.catalog, dict) else {}
+        entries = catalog.get(section)
+        if not isinstance(entries, list):
+            return set()
+        return {
+            entry.get("id")
+            for entry in entries
+            if isinstance(entry, dict) and isinstance(entry.get("id"), str)
+        }
+
+    def _deferred_component_count(self):
+        # 安装回执里显式延后的叶子; 扣除 applications(package-center 横幅已覆盖)
+        # 与桌面, 其余(组件等)由本横幅引导到 Quick System Runtime Setup。
+        if not isinstance(self.receipt, dict):
+            return 0
+        deferred_ids = set()
+        item_statuses = self.receipt.get("itemStatuses")
+        if isinstance(item_statuses, list):
+            deferred_ids |= {
+                entry.get("id")
+                for entry in item_statuses
+                if isinstance(entry, dict)
+                and entry.get("status") == "explicitly-deferred"
+                and isinstance(entry.get("id"), str)
+            }
+        pending = self.receipt.get("pendingItems")
+        if isinstance(pending, list):
+            deferred_ids |= {item for item in pending if isinstance(item, str)}
+        applications = self._catalog_section_ids("applications")
+        count = 0
+        for leaf_id in deferred_ids:
+            if leaf_id.startswith("desktop-") or leaf_id in applications:
+                continue
+            count += 1
+        return count
 
     def _update_state(self):
         if not isinstance(self.update_status, dict) or self.update_status.get("version") != 1:
