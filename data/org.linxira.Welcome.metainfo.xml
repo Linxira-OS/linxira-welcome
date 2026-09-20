@@ -15,6 +15,6 @@
   <url type="vcs-browser">https://github.com/Linxira-OS/linxira-welcome</url>
   <url type="bugtracker">https://github.com/Linxira-OS/linxira-welcome/issues</url>
   <url type="help">https://linxira-os.github.io/linxira-wiki/</url>
-  <releases><release version="1.0.0" date="2026-07-26" /></releases>
+  <releases><release version="1.0.1" date="2026-09-20" /><release version="1.0.0" date="2026-07-26" /></releases>
   <content_rating type="oars-1.1" />
 </component>
