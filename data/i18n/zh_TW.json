@@ -60,5 +60,6 @@
   "driver_setup_body": "開啟「硬體和驅動」：自動偵測硬體並安裝相符驅動。Linxira 使用通用 Linux 核心，無需建置自訂核心。",
   "component_deferred_title": "完成延後元件的安裝",
   "component_deferred_body": "安裝時選擇了 {count} 個需要連網的系統元件，因當時沒有可用網路而被延後。開啟「快速配置系統執行時」即可完成安裝——延後項目已自動為你勾選。",
-  "component_deferred_continue": "繼續安裝"
+  "component_deferred_continue": "繼續安裝",
+  "open_terminal": "終端機"
 }

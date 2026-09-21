@@ -62,7 +62,7 @@ PENDING_INSTALL_PATH = Path(
         "/var/lib/linxira/pending-install.json",
     )
 )
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -92,6 +92,15 @@ APPS = {
     "gaming": ("/usr/bin/linxira-gaming-manager", []),
     "hardware": ("/usr/bin/linxira-hardware-driver-manager", []),
     "recovery": ("/usr/bin/linxira-recovery-diagnostics-gui", []),
+    "terminal": ("/usr/bin/cosmic-terminal", []),
+}
+
+
+# 2026-09-21: 终端回退链 —— 桌面环境不完整时的救援入口, 依次尝试直至命中。
+TERMINALS = {
+    "/usr/bin/cosmic-terminal": ("-e",),
+    "/usr/bin/konsole": ("--hold", "-e"),
+    "/usr/bin/xterm": ("-hold", "-e"),
 }
 
 TEXT = {
@@ -106,6 +115,7 @@ TEXT = {
         "install": "Install Linxira OS",
         "launchers": "Open a Linxira tool",
         "open_shelly": "Software Center",
+        "open_terminal": "Terminal",
         "open_software": "Quick System Software Setup",
         "open_components": "Quick System Runtime Setup",
         "open_config": "Config CLI",
@@ -394,6 +404,10 @@ class WelcomeWindow(QMainWindow):
             actions.addWidget(self._action_tile(self.tr("open_gaming"), "applications-games", "gaming"), 3, 0)
             actions.addWidget(self._action_tile(self.tr("open_hardware"), "preferences-devices", "hardware"), 3, 1)
             actions.addWidget(self._action_tile(self.tr("open_recovery"), "tools-report-bug", "recovery"), 4, 0)
+        if self.is_live:
+            actions.addWidget(self._action_tile(self.tr("open_terminal"), "utilities-terminal", "terminal"), 2, 0)
+        else:
+            actions.addWidget(self._action_tile(self.tr("open_terminal"), "utilities-terminal", "terminal"), 4, 1)
         layout.addLayout(actions)
         if not self.is_live:
             # 2026-08-13: 驱动快速配置引导(lhwd 命令 + 通用内核说明, 不涉及定制内核构建)
@@ -617,8 +631,11 @@ class WelcomeWindow(QMainWindow):
     def _button(self, text, icon, app, primary=False):
         button = QPushButton(QIcon.fromTheme(icon), text)
         button.setProperty("primary", primary)
-        executable = APPS[app][0]
-        button.setEnabled(shutil.which(executable) is not None or os.access(executable, os.X_OK))
+        executable, _arguments = self._resolve_app(app)
+        button.setEnabled(
+            bool(executable)
+            and (shutil.which(executable) is not None or os.access(executable, os.X_OK))
+        )
         button.clicked.connect(lambda: self._launch_app(app, text))
         return button
 
@@ -641,7 +658,6 @@ class WelcomeWindow(QMainWindow):
         return button
 
     def _launch_app(self, app, display_name):
-        executable, arguments = APPS[app]
         if app == "installer":
             # 2026-08-13: 语言联动 —— welcome 选择的语言写入临时文件,
             # linxira-installer-shell 读取后以该 LANG 启动 calamares。
@@ -649,8 +665,20 @@ class WelcomeWindow(QMainWindow):
                 Path("/tmp/linxira-installer-lang").write_text(self.language, encoding="utf-8")
             except OSError:
                 pass
-        if not QProcess.startDetached(executable, arguments):
+        executable, arguments = self._resolve_app(app)
+        if not executable or not QProcess.startDetached(executable, list(arguments)):
             QMessageBox.warning(self, "Linxira Welcome", self.tr("launch_error", name=display_name))
+
+    def _resolve_app(self, app):
+        # 2026-09-21: 终端与 Config CLI 按桌面环境回退 —— COSMIC 下无 konsole,
+        # 依次尝试 cosmic-terminal/konsole/xterm, 保证救援入口始终可用。
+        if app in ("terminal", "config"):
+            arguments = () if app == "terminal" else ("/usr/bin/linxira-config", "status")
+            for executable, flags in TERMINALS.items():
+                if os.access(executable, os.X_OK):
+                    return executable, (*flags, *arguments)
+            return APPS[app][0], APPS[app][1]
+        return APPS[app]
 
     def _apply_style(self):
         self.setStyleSheet(

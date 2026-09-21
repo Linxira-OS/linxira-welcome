@@ -63,5 +63,6 @@
   "show_login": "登录时显示 Welcome",
   "launch_error": "无法打开{name}。",
   "driver_setup_title": "快速配置驱动",
-  "driver_setup_body": "打开「硬件和驱动」：自动检测硬件并安装匹配驱动。Linxira 使用通用 Linux 内核，无需构建定制内核。"
+  "driver_setup_body": "打开「硬件和驱动」：自动检测硬件并安装匹配驱动。Linxira 使用通用 Linux 内核，无需构建定制内核。",
+  "open_terminal": "终端"
 }

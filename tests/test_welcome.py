@@ -48,7 +48,7 @@ class WelcomeTests(unittest.TestCase):
         apps = assignment_value(self.source, "APPS")
         self.assertEqual(
             set(apps),
-            {"installer", "shelly", "package_center", "component_manager", "config", "settings", "update", "gaming", "hardware", "recovery"},
+            {"installer", "shelly", "package_center", "component_manager", "config", "settings", "update", "gaming", "hardware", "recovery", "terminal"},
         )
         self.assertEqual(apps["shelly"], ("/usr/bin/shelly-ui", []))
         self.assertEqual(apps["package_center"], ("/usr/bin/linxira-package-center", []))
@@ -57,11 +57,25 @@ class WelcomeTests(unittest.TestCase):
         self.assertEqual(apps["gaming"], ("/usr/bin/linxira-gaming-manager", []))
         self.assertEqual(apps["hardware"], ("/usr/bin/linxira-hardware-driver-manager", []))
         self.assertEqual(apps["recovery"], ("/usr/bin/linxira-recovery-diagnostics-gui", []))
+        self.assertEqual(apps["terminal"], ("/usr/bin/cosmic-terminal", []))
         self.assertEqual(
             apps["config"],
             ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
         )
-        self.assertIn("QProcess.startDetached(executable, arguments)", self.source)
+        self.assertIn("QProcess.startDetached(executable, list(arguments))", self.source)
+        self.assertIn(
+            '"/usr/bin/cosmic-terminal": ("-e",)',
+            self.source,
+        )
+        self.assertIn(
+            '"/usr/bin/konsole": ("--hold", "-e")',
+            self.source,
+        )
+        self.assertIn(
+            '"/usr/bin/xterm": ("-hold", "-e")',
+            self.source,
+        )
+        self.assertIn("if app in (\"terminal\", \"config\"):", self.source)
 
     def test_has_no_privileged_shell_or_package_transaction_path(self):
         for forbidden in (
@@ -115,7 +129,7 @@ class WelcomeTests(unittest.TestCase):
     def test_all_translations_cover_the_reduced_surface(self):
         required = {
             "home", "status", "help", "install", "launchers",
-            "open_shelly", "open_software", "open_components", "open_config", "open_settings",
+            "open_shelly", "open_terminal", "open_software", "open_components", "open_config", "open_settings",
             "open_update", "open_gaming", "open_hardware", "open_recovery", "available_updates", "last_update_check", "reboot_required",
             "yes", "no", "unknown",
             "health", "health_ready", "health_attention", "first_completion",
