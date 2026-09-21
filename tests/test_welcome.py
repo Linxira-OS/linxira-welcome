@@ -53,7 +53,7 @@ class WelcomeTests(unittest.TestCase):
         self.assertEqual(apps["shelly"], ("/usr/bin/shelly-ui", []))
         self.assertEqual(apps["package_center"], ("/usr/bin/linxira-package-center", []))
         self.assertEqual(apps["component_manager"], ("/usr/bin/linxira-component-manager", []))
-        self.assertEqual(apps["update"], ("/usr/bin/linxira-update", []))
+        self.assertEqual(apps["update"], ("/usr/bin/linxira-update", ["--launch"]))
         self.assertEqual(apps["gaming"], ("/usr/bin/linxira-gaming-manager", []))
         self.assertEqual(apps["hardware"], ("/usr/bin/linxira-hardware-driver-manager", []))
         self.assertEqual(apps["recovery"], ("/usr/bin/linxira-recovery-diagnostics-gui", []))

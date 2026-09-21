@@ -62,7 +62,7 @@ PENDING_INSTALL_PATH = Path(
         "/var/lib/linxira/pending-install.json",
     )
 )
-APP_VERSION = "1.0.2"
+APP_VERSION = "1.0.3"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -88,7 +88,7 @@ APPS = {
     "component_manager": ("/usr/bin/linxira-component-manager", []),
     "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
     "settings": ("/usr/bin/systemsettings", []),
-    "update": ("/usr/bin/linxira-update", []),
+    "update": ("/usr/bin/linxira-update", ["--launch"]),
     "gaming": ("/usr/bin/linxira-gaming-manager", []),
     "hardware": ("/usr/bin/linxira-hardware-driver-manager", []),
     "recovery": ("/usr/bin/linxira-recovery-diagnostics-gui", []),
