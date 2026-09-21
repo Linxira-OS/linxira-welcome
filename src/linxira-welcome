@@ -5,6 +5,7 @@ import os
 import platform
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 
 from PySide6.QtCore import QLocale, QProcess, QSettings, QSize, Qt, QUrl
@@ -62,7 +63,7 @@ PENDING_INSTALL_PATH = Path(
         "/var/lib/linxira/pending-install.json",
     )
 )
-APP_VERSION = "1.0.3"
+APP_VERSION = "1.0.4"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -87,18 +88,20 @@ APPS = {
     "package_center": ("/usr/bin/linxira-package-center", []),
     "component_manager": ("/usr/bin/linxira-component-manager", []),
     "config": ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
-    "settings": ("/usr/bin/systemsettings", []),
+    "settings": ("/usr/bin/cosmic-settings", "/usr/bin/systemsettings"),
     "update": ("/usr/bin/linxira-update", ["--launch"]),
     "gaming": ("/usr/bin/linxira-gaming-manager", []),
     "hardware": ("/usr/bin/linxira-hardware-driver-manager", []),
     "recovery": ("/usr/bin/linxira-recovery-diagnostics-gui", []),
-    "terminal": ("/usr/bin/cosmic-terminal", []),
+    "terminal": ("/usr/bin/cosmic-term", []),
 }
 
 
 # 2026-09-21: 终端回退链 —— 桌面环境不完整时的救援入口, 依次尝试直至命中。
 TERMINALS = {
-    "/usr/bin/cosmic-terminal": ("-e",),
+    # 2026-09-21: Arch 包名 cosmic-terminal, 二进制却是 cosmic-term(包名≠二进制名);
+    # 旧条目检查了不存在的路径, 终端/Config CLI 两张卡因此在 COSMIC 全灰。
+    "/usr/bin/cosmic-term": ("-e",),
     "/usr/bin/konsole": ("--hold", "-e"),
     "/usr/bin/xterm": ("-hold", "-e"),
 }
@@ -670,14 +673,21 @@ class WelcomeWindow(QMainWindow):
             QMessageBox.warning(self, "Linxira Welcome", self.tr("launch_error", name=display_name))
 
     def _resolve_app(self, app):
-        # 2026-09-21: 终端与 Config CLI 按桌面环境回退 —— COSMIC 下无 konsole,
-        # 依次尝试 cosmic-terminal/konsole/xterm, 保证救援入口始终可用。
+        # 2026-09-21: 终端与 Config CLI 按桌面环境回退 —— COSMIC 的终端二进制是
+        # cosmic-term(Arch 包名 cosmic-terminal, 包名≠二进制名), 依次尝试
+        # cosmic-term/konsole/xterm, 保证救援入口始终可用。
         if app in ("terminal", "config"):
             arguments = () if app == "terminal" else ("/usr/bin/linxira-config", "status")
             for executable, flags in TERMINALS.items():
                 if os.access(executable, os.X_OK):
                     return executable, (*flags, *arguments)
             return APPS[app][0], APPS[app][1]
+        if app == "settings":
+            # 2026-09-21: COSMIC 用 cosmic-settings, KDE 才有 systemsettings。
+            for executable in APPS["settings"]:
+                if os.access(executable, os.X_OK):
+                    return executable, ()
+            return APPS["settings"][0], ()
         return APPS[app]
 
     def _apply_style(self):
@@ -710,8 +720,50 @@ class WelcomeWindow(QMainWindow):
             """
         )
 
+def _system_prefers_dark():
+    """2026-09-21: 跟随桌面深色模式 —— 读 freedesktop color-scheme portal(1=深色)。
+    Qt 在 COSMIC 下没有平台主题插件, 读不到桌面主题, 只能查 portal。"""
+    try:
+        result = subprocess.run(
+            ["gdbus", "call", "--session",
+             "--dest", "org.freedesktop.portal.Desktop",
+             "--object-path", "/org/freedesktop/portal/desktop",
+             "--method", "org.freedesktop.portal.Settings.ReadOne",
+             "org.freedesktop.appearance", "color-scheme"],
+            capture_output=True, text=True, timeout=3, check=True)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return "uint32 1" in result.stdout
+
+
+def _apply_dark_palette(app):
+    """2026-09-21: Fusion + 深色调色板(高亮用品牌青 #20b8a6)。"""
+    from PySide6.QtGui import QColor, QPalette
+    app.setStyle("Fusion")
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor("#2a2e32"))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor("#e6eaed"))
+    palette.setColor(QPalette.ColorRole.Base, QColor("#1f2326"))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor("#2a2e32"))
+    palette.setColor(QPalette.ColorRole.Text, QColor("#e6eaed"))
+    palette.setColor(QPalette.ColorRole.Button, QColor("#2a2e32"))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor("#e6eaed"))
+    palette.setColor(QPalette.ColorRole.ToolTipBase, QColor("#1f2326"))
+    palette.setColor(QPalette.ColorRole.ToolTipText, QColor("#e6eaed"))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor("#20b8a6"))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor("#ffffff"))
+    palette.setColor(QPalette.ColorRole.Link, QColor("#4fc3f7"))
+    palette.setColor(QPalette.ColorRole.PlaceholderText, QColor("#9aa6a8"))
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor("#6b7478"))
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor("#6b7478"))
+    app.setPalette(palette)
+
+
 def main():
     app = QApplication(sys.argv)
+    # 2026-09-21: 深色模式跟随桌面(portal color-scheme)。
+    if _system_prefers_dark():
+        _apply_dark_palette(app)
     app.setApplicationName("Linxira Welcome")
     app.setOrganizationName("Linxira")
     settings = QSettings("Linxira", "Welcome")

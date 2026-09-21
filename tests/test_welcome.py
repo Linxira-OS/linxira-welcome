@@ -57,14 +57,15 @@ class WelcomeTests(unittest.TestCase):
         self.assertEqual(apps["gaming"], ("/usr/bin/linxira-gaming-manager", []))
         self.assertEqual(apps["hardware"], ("/usr/bin/linxira-hardware-driver-manager", []))
         self.assertEqual(apps["recovery"], ("/usr/bin/linxira-recovery-diagnostics-gui", []))
-        self.assertEqual(apps["terminal"], ("/usr/bin/cosmic-terminal", []))
+        self.assertEqual(apps["terminal"], ("/usr/bin/cosmic-term", []))
+        self.assertEqual(apps["settings"], ("/usr/bin/cosmic-settings", "/usr/bin/systemsettings"))
         self.assertEqual(
             apps["config"],
             ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
         )
         self.assertIn("QProcess.startDetached(executable, list(arguments))", self.source)
         self.assertIn(
-            '"/usr/bin/cosmic-terminal": ("-e",)',
+            '"/usr/bin/cosmic-term": ("-e",)',
             self.source,
         )
         self.assertIn(
