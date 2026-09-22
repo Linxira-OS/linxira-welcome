@@ -5,5 +5,3 @@ Name[zh_CN]=Linxira 欢迎中心
 Exec=/usr/bin/linxira-welcome --autostart
 Icon=linxira
 Terminal=false
-OnlyShowIn=KDE;
-X-KDE-autostart-after=panel

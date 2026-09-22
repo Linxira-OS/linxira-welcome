@@ -9,6 +9,6 @@ Comment[zh_CN]=打开 Linxira 系统工具与资源
 Exec=/usr/bin/linxira-welcome
 Icon=linxira
 Terminal=false
-Categories=System;Settings;
+Categories=System;Settings;Utility;
 StartupNotify=true
 StartupWMClass=linxira-welcome

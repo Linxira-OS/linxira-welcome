@@ -61,7 +61,7 @@ class WelcomeTests(unittest.TestCase):
         self.assertEqual(apps["settings"], ("/usr/bin/cosmic-settings", "/usr/bin/systemsettings"))
         self.assertEqual(
             apps["config"],
-            ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config", "status"]),
+            ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config"]),
         )
         self.assertIn("QProcess.startDetached(executable, list(arguments))", self.source)
         self.assertIn(
