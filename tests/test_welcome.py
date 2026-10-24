@@ -31,10 +31,12 @@ class WelcomeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.source = WELCOME.read_text(encoding="utf-8")
 
-    def test_has_only_home_status_and_help_pages(self):
+    def test_has_home_status_terminal_and_help_pages(self):
         self.assertIn("self._home_page()", self.source)
         self.assertIn("self._status_page()", self.source)
+        self.assertIn("self._terminal_page()", self.source)
         self.assertIn("self._help_page()", self.source)
+        self.assertIn('.tr("terminal")', self.source)
         for removed in (
             "_setup_page",
             "_software_page",
@@ -43,6 +45,17 @@ class WelcomeTests(unittest.TestCase):
             "_resources_page",
         ):
             self.assertNotIn(removed, self.source)
+
+    def test_terminal_page_lists_bash_then_alphabetic_shells(self):
+        choices = assignment_value(self.source, "SHELL_CHOICES")
+        self.assertEqual([entry[0] for entry in choices], ["bash", "fish", "nushell", "zsh"])
+        self.assertIsNone(choices[0][3])
+        self.assertEqual(
+            [entry[3] for entry in choices[1:]],
+            ["component-fish", "component-nushell", "component-zsh"],
+        )
+        self.assertIn('["--select", leaf_id]', self.source)
+        self.assertIn("chsh -s {path}", self.source)
 
     def test_uses_only_the_fixed_product_launchers(self):
         apps = assignment_value(self.source, "APPS")

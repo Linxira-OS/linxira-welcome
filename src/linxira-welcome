@@ -63,7 +63,7 @@ PENDING_INSTALL_PATH = Path(
         "/var/lib/linxira/pending-install.json",
     )
 )
-APP_VERSION = "1.0.5"
+APP_VERSION = "1.1.0"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -106,11 +106,35 @@ TERMINALS = {
     "/usr/bin/xterm": ("-hold", "-e"),
 }
 
+# 终端页(2026-10-24): bash 是基线且默认; 其余按字母序(fish → nushell → zsh),
+# 与 catalog 的 component-fish / component-nushell / component-zsh 对应。
+SHELL_CHOICES = (
+    ("bash", "/usr/bin/bash", "shell_bash_desc", None),
+    ("fish", "/usr/bin/fish", "shell_fish_desc", "component-fish"),
+    ("nushell", "/usr/bin/nu", "shell_nushell_desc", "component-nushell"),
+    ("zsh", "/usr/bin/zsh", "shell_zsh_desc", "component-zsh"),
+)
+
 TEXT = {
     "en": {
         "home": "Home",
         "status": "Status",
         "help": "Help",
+        "terminal": "Terminal",
+        "terminal_title": "Terminal and shells",
+        "terminal_body": "bash is the system default and always installed. Pick another shell below: the install button opens Quick System Runtime Setup with that shell preselected, and the reviewed transaction stays there. The login shell only changes when you run the command shown.",
+        "terminal_baseline": "System baseline",
+        "terminal_default": "Default login shell",
+        "terminal_installed": "Installed",
+        "terminal_available": "Not installed",
+        "terminal_open_manager": "Open installer",
+        "terminal_copy_chsh": "Copy command",
+        "terminal_copied": "Command copied to clipboard",
+        "terminal_manager_missing": "Quick System Runtime Setup is not installed.",
+        "shell_bash_desc": "POSIX shell used by the system and by scripts; it is the login shell of every new account.",
+        "shell_fish_desc": "Friendly interactive shell: syntax highlighting and suggestions out of the box.",
+        "shell_nushell_desc": "Structured-data shell: pipelines work on typed tables instead of raw text.",
+        "shell_zsh_desc": "POSIX-compatible extended shell with a very large configuration ecosystem.",
         "subtitle_live": "Live scientific workstation",
         "subtitle_installed": "Scientific workstation welcome",
         "live_title": "Ready to install",
@@ -254,6 +278,7 @@ class WelcomeWindow(QMainWindow):
         for label, icon in (
             (self.tr("home"), "go-home-symbolic"),
             (self.tr("status"), "dialog-information"),
+            (self.tr("terminal"), "utilities-terminal"),
             (self.tr("help"), "help-contents"),
         ):
             item = QListWidgetItem(QIcon.fromTheme(icon), label)
@@ -263,6 +288,7 @@ class WelcomeWindow(QMainWindow):
         self.pages = QStackedWidget()
         self.pages.addWidget(self._home_page())
         self.pages.addWidget(self._status_page())
+        self.pages.addWidget(self._terminal_page())
         self.pages.addWidget(self._help_page())
         self.navigation.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.navigation.setCurrentRow(0)
@@ -474,6 +500,85 @@ class WelcomeWindow(QMainWindow):
 
         layout.addStretch()
         return page
+
+    def _terminal_page(self):
+        page, layout = self._page(self.tr("terminal_title"))
+        body = QLabel(self.tr("terminal_body"))
+        body.setObjectName("muted")
+        body.setWordWrap(True)
+        layout.addWidget(body)
+        for name, path, description, leaf_id in SHELL_CHOICES:
+            layout.addWidget(self._shell_row(name, path, description, leaf_id))
+        layout.addStretch()
+        return page
+
+    def _shell_row(self, name, path, description, leaf_id):
+        frame = QFrame()
+        frame.setObjectName("panel")
+        row = QHBoxLayout(frame)
+        row.setContentsMargins(18, 14, 18, 14)
+        copy = QVBoxLayout()
+        title = QLabel(name)
+        title_font = title.font()
+        title_font.setBold(True)
+        title.setFont(title_font)
+        copy.addWidget(title)
+        detail = QLabel(self.tr(description))
+        detail.setObjectName("muted")
+        detail.setWordWrap(True)
+        copy.addWidget(detail)
+        installed = shutil.which(path) is not None or os.access(path, os.X_OK)
+        login_shell = self._current_login_shell()
+        if login_shell == path:
+            state = self.tr("terminal_default")
+        elif installed:
+            state = self.tr("terminal_installed")
+        elif leaf_id is None:
+            state = self.tr("terminal_baseline")
+        else:
+            state = self.tr("terminal_available")
+        badge = QLabel(state)
+        badge.setObjectName("muted")
+        copy.addWidget(badge)
+        row.addLayout(copy, 1)
+        if leaf_id is not None and not installed:
+            executable = self._resolve_app("component_manager")[0]
+            available = bool(executable) and (
+                shutil.which(executable) is not None or os.access(executable, os.X_OK)
+            )
+            button = QPushButton(self.tr("terminal_open_manager"))
+            button.setProperty("primary", True)
+            button.setEnabled(available)
+            if not available:
+                button.setToolTip(self.tr("terminal_manager_missing"))
+            button.clicked.connect(lambda: self._launch_component(leaf_id))
+            row.addWidget(button)
+        elif installed and login_shell != path:
+            button = QPushButton(self.tr("terminal_copy_chsh"))
+            button.clicked.connect(lambda: self._copy_command(path))
+            row.addWidget(button)
+        return frame
+
+    def _current_login_shell(self):
+        # 登录 shell 记录在 /etc/passwd; 取不到时退回 $SHELL(仅作展示, 不改任何东西)。
+        try:
+            import pwd
+
+            return pwd.getpwuid(os.getuid()).pw_shell
+        except (ImportError, KeyError, OSError):
+            return os.environ.get("SHELL", "")
+
+    def _launch_component(self, leaf_id):
+        # 安装事务只发生在 runtime setup 应用里(带 --select 预选); welcome 不做提权。
+        executable = self._resolve_app("component_manager")[0]
+        if not executable or not QProcess.startDetached(executable, ["--select", leaf_id]):
+            QMessageBox.warning(
+                self, "Linxira Welcome", self.tr("launch_error", name=self.tr("open_components"))
+            )
+
+    def _copy_command(self, path):
+        QApplication.clipboard().setText(f"chsh -s {path}")
+        self.statusBar().showMessage(self.tr("terminal_copied"), 4000)
 
     def _help_page(self):
         page, layout = self._page(self.tr("help"))

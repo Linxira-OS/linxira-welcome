@@ -41,7 +41,7 @@ python -m compileall -q src
 
 ## 版本与发布
 
-- 版本唯一来源是本仓根 `VERSION`(当前 `1.0.5`)。
+- 版本唯一来源是本仓根 `VERSION`(当前 `1.1.0`)。
 - 改 `VERSION` 触发 `.github/workflows/release.yml`(分支 `main`)自动建 Release,进入 `[linxira]` 全自动链。**禁止手工 bump**。
 
 ## 禁区
