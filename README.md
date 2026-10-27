@@ -53,11 +53,15 @@ Live ISO has an ephemeral profile, so Welcome opens on every fresh Live boot.
 python -m unittest discover -s tests -v
 ```
 
-## Planned: System page (not implemented)
+## System page
 
-Welcome is planned to gain a data-driven System page that reads
-`/usr/share/linxira/agent/capabilities.json` and renders only the entries
-tagged for Welcome (group, order, icon, hardware scope). The page is for
-entering Linxira-owned software and system-specific configuration; it must not
-duplicate package installation, environment setup, or native desktop settings.
-No Welcome code change has shipped for this yet.
+Welcome reads `/usr/share/linxira/agent/capabilities.json` (installed by
+`linxira-config-hub`) and renders only the commands carrying a `welcome`
+metadata block: group, order, label key, icon and hardware scope. Entries with
+`"mutating": true` are skipped unless they explicitly opt in.
+
+The page is an entry point only. Every tile opens the matching `linxira-config`
+subcommand in a terminal; Welcome never escalates privileges, runs package
+transactions, or changes system settings itself. Laptop-only entries (for
+example power and battery) are hidden when the chassis is not portable and no
+`BAT*` device exists.
