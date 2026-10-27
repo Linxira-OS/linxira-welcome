@@ -77,8 +77,9 @@ class WelcomeTests(unittest.TestCase):
             ("/usr/bin/konsole", ["--hold", "-e", "/usr/bin/linxira-config"]),
         )
         self.assertIn("QProcess.startDetached(executable, list(arguments))", self.source)
+        # 2026-10-27: cosmic-term 没有 -e, 不能按 -e 派发命令。
         self.assertIn(
-            '"/usr/bin/cosmic-term": ("-e",)',
+            '"/usr/bin/cosmic-term",',
             self.source,
         )
         self.assertIn(
@@ -89,7 +90,10 @@ class WelcomeTests(unittest.TestCase):
             '"/usr/bin/xterm": ("-hold", "-e")',
             self.source,
         )
-        self.assertIn("if app in (\"terminal\", \"config\"):", self.source)
+        # 2026-10-27: 终端/配置不再共用一条解析分支 —— cosmic-term 没有 -e,
+        # 带命令的终端必须走 _run_in_terminal。
+        self.assertIn('if app == "terminal":', self.source)
+        self.assertIn("def _run_in_terminal(self, command):", self.source)
 
     def test_has_no_privileged_shell_or_package_transaction_path(self):
         for forbidden in (
@@ -189,7 +193,27 @@ class SystemPageTests(unittest.TestCase):
 
     def test_never_runs_mutating_entries(self):
         self.assertIn('if command.get("mutating") and meta.get("allow_mutating") is not True:', self.source)
-        self.assertIn('self._launch_app("config", label)', self.source)
+
+    def test_tile_runs_the_entry_subcommand(self):
+        # 2026-10-27: 只打开 linxira-config 主菜单时, 点"远程访问"等入口没有反应。
+        self.assertIn("self._system_tile(*entry)", self.source)
+        self.assertIn('command = ["/usr/bin/linxira-config", *subcommand]', self.source)
+        self.assertIn("def _open_system_entry(self, command, display_name):", self.source)
+        self.assertNotIn('self._launch_app("config", label)', self.source)
+
+    def test_manifest_argv_drops_the_executable(self):
+        self.assertIn("def _config_argv(command):", self.source)
+        self.assertIn('argv[0].startswith("linxira-config")', self.source)
+
+    def test_terminals_without_exec_flags_use_a_desktop_entry(self):
+        # cosmic-term 只认 -w, 传 -e 会被当成工作目录, 窗口一闪即退。
+        source = WELCOME.read_text(encoding="utf-8")
+        self.assertIn('"/usr/bin/cosmic-term",', source)
+        self.assertIn("NO_EXEC_TERMINALS", source)
+        self.assertIn("Terminal=true", source)
+        self.assertIn("def _run_in_terminal(self, command):", source)
+        terminals = source.split("TERMINALS = {", 1)[1].split("NO_EXEC_TERMINALS", 1)[0]
+        self.assertNotIn('"/usr/bin/cosmic-term":', terminals)
 
     def test_system_keys_are_translated(self):
         required = {

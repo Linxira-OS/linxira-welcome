@@ -7,8 +7,9 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
-from PySide6.QtCore import QLocale, QProcess, QSettings, QSize, Qt, QUrl
+from PySide6.QtCore import QLocale, QProcess, QSettings, QSize, Qt, QTimer, QUrl
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -69,7 +70,7 @@ CAPABILITIES_PATH = Path(
         "/usr/share/linxira/agent/capabilities.json",
     )
 )
-APP_VERSION = "1.2.1"
+APP_VERSION = "1.2.2"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -104,13 +105,42 @@ APPS = {
 
 
 # 2026-09-21: 终端回退链 —— 桌面环境不完整时的救援入口, 依次尝试直至命中。
+#
+# 2026-10-27: 每条终端各自的"执行命令"写法并不统一, 且 cosmic-term 根本没有
+# -e: 它只认 -w/--working-directory, 位置参数会被当成工作目录/文件, 窗口一闪
+# 即退(表现为"点了没反应")。所以按能力分两类:
+#   - 支持 -e 风格: konsole/xterm/alacritty/kitty/foot;
+#   - 不支持: cosmic-term —— 只能靠 Terminal=true 的桌面条目由桌面拉起。
 TERMINALS = {
     # 2026-09-21: Arch 包名 cosmic-terminal, 二进制却是 cosmic-term(包名≠二进制名);
     # 旧条目检查了不存在的路径, 终端/Config CLI 两张卡因此在 COSMIC 全灰。
-    "/usr/bin/cosmic-term": ("-e",),
     "/usr/bin/konsole": ("--hold", "-e"),
+    "/usr/bin/alacritty": ("-e",),
     "/usr/bin/xterm": ("-hold", "-e"),
 }
+
+# 2026-10-27: 没有 -e 语义的终端。这些只能经 Terminal=true 桌面条目启动。
+NO_EXEC_TERMINALS = {
+    "/usr/bin/cosmic-term",
+    "/usr/bin/kitty",
+    "/usr/bin/foot",
+}
+
+# 终端类桌面条目的候选 ID, 用于 Terminal=true 方式拉起时挑选默认终端。
+TERMINAL_DESKTOP_IDS = (
+    "com.system76.CosmicTerm.desktop",
+    "org.gnome.Terminal.desktop",
+    "konsole.desktop",
+    "Alacritty.desktop",
+    "kitty.desktop",
+    "foot.desktop",
+    "xterm.desktop",
+)
+TERMINAL_DESKTOP_DIRS = (
+    Path("/usr/share/applications"),
+    Path("/usr/local/share/applications"),
+    Path.home() / ".local/share/applications",
+)
 
 # 终端页(2026-10-24): bash 是基线且默认; 其余按字母序(fish → nushell → zsh),
 # 与 catalog 的 component-fish / component-nushell / component-zsh 对应。
@@ -221,6 +251,21 @@ TEXT = {
         "driver_setup_body": "Open Hardware and Drivers: it auto-detects your hardware and installs matching drivers. Linxira ships the generic Linux kernel — no custom kernel build is needed.",
     },
 }
+
+
+def _config_argv(command):
+    """Manifest ``argv`` minus the executable name; ``[]`` when unusable.
+
+    The manifest spells the full command (``["linxira-config", "ssh", "status"]``)
+    while Welcome always launches ``/usr/bin/linxira-config`` itself, so the
+    leading executable has to go. Without this the tile re-opened the main menu.
+    """
+    argv = command.get("argv")
+    if not isinstance(argv, list) or not argv:
+        return []
+    if isinstance(argv[0], str) and argv[0].startswith("linxira-config"):
+        argv = argv[1:]
+    return [str(item) for item in argv if isinstance(item, str)]
 
 
 def read_json(path):
@@ -616,7 +661,7 @@ class WelcomeWindow(QMainWindow):
             grid.setHorizontalSpacing(12)
             grid.setVerticalSpacing(12)
             for index, entry in enumerate(entries):
-                tile = self._system_tile(entry)
+                tile = self._system_tile(*entry)
                 grid.addWidget(tile, index // 2, index % 2)
             layout.addLayout(grid)
         layout.addStretch()
@@ -645,8 +690,8 @@ class WelcomeWindow(QMainWindow):
                 continue
             if command.get("mutating") and meta.get("allow_mutating") is not True:
                 continue
-            entries.append(meta)
-        entries.sort(key=lambda item: item.get("order", 100))
+            entries.append((meta, _config_argv(command)))
+        entries.sort(key=lambda item: item[0].get("order", 100))
         return entries
 
     def _is_laptop(self):
@@ -678,21 +723,25 @@ class WelcomeWindow(QMainWindow):
         except OSError:
             return False
 
-    def _system_tile(self, entry):
+    def _system_tile(self, entry, subcommand):
         label = self.tr(entry.get("label_key", "system"))
         button = QPushButton(QIcon.fromTheme(entry.get("icon", "preferences-system")), label)
         button.setObjectName("actionTile")
         button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         button.setMinimumHeight(72)
-        executable, arguments = self._resolve_app("config")
-        available = bool(executable) and (
-            shutil.which(executable) is not None or os.access(executable, os.X_OK)
-        )
+        command = ["/usr/bin/linxira-config", *subcommand]
+        available = os.access("/usr/bin/linxira-config", os.X_OK)
         button.setEnabled(available)
         if not available:
             button.setToolTip(self.tr("system_config_missing"))
-        button.clicked.connect(lambda: self._launch_app("config", label))
+        button.clicked.connect(lambda: self._open_system_entry(command, label))
         return button
+
+    def _open_system_entry(self, command, display_name):
+        # 2026-10-27: 条目必须跑自己的子命令。之前只打开 linxira-config 主菜单,
+        # 点"远程访问/网络诊断"等入口看起来没反应。
+        if not self._run_in_terminal(command):
+            QMessageBox.warning(self, "Linxira Welcome", self.tr("launch_error", name=display_name))
 
     def _help_page(self):
         page, layout = self._page(self.tr("help"))
@@ -887,20 +936,83 @@ class WelcomeWindow(QMainWindow):
                 Path("/tmp/linxira-installer-lang").write_text(self.language, encoding="utf-8")
             except OSError:
                 pass
+        if app == "config":
+            if not self._run_in_terminal(["/usr/bin/linxira-config"]):
+                QMessageBox.warning(
+                    self, "Linxira Welcome", self.tr("launch_error", name=display_name)
+                )
+            return
         executable, arguments = self._resolve_app(app)
         if not executable or not QProcess.startDetached(executable, list(arguments)):
             QMessageBox.warning(self, "Linxira Welcome", self.tr("launch_error", name=display_name))
+
+    def _run_in_terminal(self, command):
+        """Run ``command`` in a terminal; return True when something was started.
+
+        Terminals differ in how they accept a command: ``-e`` for konsole/xterm/
+        alacritty, nothing at all for cosmic-term. Terminals without an exec flag
+        are started through a throwaway ``Terminal=true`` desktop entry, which is
+        the only supported way to hand a command to them.
+        """
+        for executable, flags in TERMINALS.items():
+            if os.access(executable, os.X_OK):
+                return QProcess.startDetached(executable, [*flags, *command])
+        return self._launch_via_desktop_entry(command)
+
+    def _launch_via_desktop_entry(self, command):
+        entry_id = next(
+            (
+                name
+                for name in TERMINAL_DESKTOP_IDS
+                if any((directory / name).is_file() for directory in TERMINAL_DESKTOP_DIRS)
+            ),
+            None,
+        )
+        if entry_id is None:
+            return False
+        escaped = " ".join(
+            argument.replace("\\", "\\\\").replace('"', '\\"')
+            for argument in command
+        ).replace("%", "%%")
+        body = (
+            "[Desktop Entry]\n"
+            "Type=Application\n"
+            "Name=Linxira\n"
+            f"Exec={escaped}\n"
+            "Terminal=true\n"
+            "NoDisplay=true\n"
+        )
+        entry_dir = Path.home() / ".local/share/applications"
+        stem = f"linxira-terminal-{os.getpid()}-{int(time.monotonic() * 1000)}"
+        entry_path = entry_dir / f"{stem}.desktop"
+        try:
+            entry_dir.mkdir(parents=True, exist_ok=True)
+            entry_path.write_text(body, encoding="utf-8")
+            started = QProcess.startDetached("/usr/bin/gtk-launch", [stem])
+        except OSError:
+            return False
+        if not started:
+            self._discard_entry(entry_path)
+            return False
+        # 桌面条目只在启动时需要; 延时删除, 避免桌面缓存里留下垃圾条目。
+        QTimer.singleShot(5000, lambda: self._discard_entry(entry_path))
+        return True
+
+    @staticmethod
+    def _discard_entry(path):
+        try:
+            path.unlink()
+        except OSError:
+            pass
 
     def _resolve_app(self, app):
         # 2026-09-21: 终端与 Config CLI 按桌面环境回退 —— COSMIC 的终端二进制是
         # cosmic-term(Arch 包名 cosmic-terminal, 包名≠二进制名), 依次尝试
         # cosmic-term/konsole/xterm, 保证救援入口始终可用。
-        if app in ("terminal", "config"):
-            arguments = () if app == "terminal" else ("/usr/bin/linxira-config",)
-            for executable, flags in TERMINALS.items():
-                if os.access(executable, os.X_OK):
-                    return executable, (*flags, *arguments)
-            return APPS[app][0], APPS[app][1]
+        if app == "terminal":
+            # COSMIC 的 cosmic-term 不接受要执行的命令, 只能不带参数拉起。
+            for executable in APPS["terminal"]:
+                return executable, ()
         if app == "settings":
             # 2026-09-21: COSMIC 用 cosmic-settings, KDE 才有 systemsettings。
             for executable in APPS["settings"]:

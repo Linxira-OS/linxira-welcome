@@ -65,3 +65,10 @@ subcommand in a terminal; Welcome never escalates privileges, runs package
 transactions, or changes system settings itself. Laptop-only entries (for
 example power and battery) are hidden when the chassis is not portable and no
 `BAT*` device exists.
+
+Terminal dispatch is capability based. Terminals that accept an exec flag
+(`konsole --hold -e`, `alacritty -e`, `xterm -hold -e`) get the command
+directly. Terminals without one (`cosmic-term`, `kitty`, `foot`) are started
+through a throwaway `Terminal=true` desktop entry, because `cosmic-term` only
+understands `-w/--working-directory` and treats anything else as a file. That
+path requires `gtk-launch`, which is present with gtk3.
