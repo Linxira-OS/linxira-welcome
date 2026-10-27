@@ -31,17 +31,17 @@ class WelcomeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.source = WELCOME.read_text(encoding="utf-8")
 
-    def test_has_home_status_terminal_and_help_pages(self):
+    def test_has_home_status_terminal_system_and_help_pages(self):
         self.assertIn("self._home_page()", self.source)
         self.assertIn("self._status_page()", self.source)
         self.assertIn("self._terminal_page()", self.source)
+        self.assertIn("self._system_page()", self.source)
         self.assertIn("self._help_page()", self.source)
         self.assertIn('.tr("terminal")', self.source)
         for removed in (
             "_setup_page",
             "_software_page",
             "_sources_page",
-            "_system_page",
             "_resources_page",
         ):
             self.assertNotIn(removed, self.source)
@@ -165,3 +165,38 @@ class WelcomeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SystemPageTests(unittest.TestCase):
+    """The System page is an entry point only: it reads the capability manifest
+    and opens linxira-config; it never mutates the system itself."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.source = WELCOME.read_text(encoding="utf-8")
+
+    def test_reads_the_capability_manifest(self):
+        self.assertIn("CAPABILITIES_PATH", self.source)
+        self.assertIn('"/usr/share/linxira/agent/capabilities.json"', self.source)
+        self.assertIn('document.get("commands")', self.source)
+        self.assertIn('meta.get("scope", "any")', self.source)
+
+    def test_filters_entries_by_hardware_scope(self):
+        self.assertIn('scope = "laptop" if self._is_laptop() else "desktop"', self.source)
+        self.assertIn('if wanted not in ("any", scope):', self.source)
+        self.assertIn("/sys/class/dmi/id/chassis_type", self.source)
+        self.assertIn('glob("BAT*")', self.source)
+
+    def test_never_runs_mutating_entries(self):
+        self.assertIn('if command.get("mutating") and meta.get("allow_mutating") is not True:', self.source)
+        self.assertIn('self._launch_app("config", label)', self.source)
+
+    def test_system_keys_are_translated(self):
+        required = {
+            "system", "system_body", "system_unavailable", "system_config_missing",
+            "open_power", "open_remote", "open_security", "open_network",
+            "open_mirrors", "open_runtime", "open_logs",
+        }
+        for path in sorted(I18N.glob("*.json")):
+            document = json.loads(path.read_text(encoding="utf-8"))
+            self.assertTrue(required.issubset(document), path.name)

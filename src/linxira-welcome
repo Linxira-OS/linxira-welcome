@@ -63,7 +63,13 @@ PENDING_INSTALL_PATH = Path(
         "/var/lib/linxira/pending-install.json",
     )
 )
-APP_VERSION = "1.1.0"
+CAPABILITIES_PATH = Path(
+    os.environ.get(
+        "LINXIRA_CAPABILITIES_PATH",
+        "/usr/share/linxira/agent/capabilities.json",
+    )
+)
+APP_VERSION = "1.2.0"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -120,6 +126,17 @@ TEXT = {
         "home": "Home",
         "status": "Status",
         "help": "Help",
+        "system": "System",
+        "system_body": "Open a Linxira system tool. Each entry runs the matching linxira-config command in a terminal; nothing is changed from this window.",
+        "system_unavailable": "The system capability manifest is not installed (linxira-config-hub).",
+        "system_config_missing": "The Linxira configuration CLI is not installed.",
+        "open_power": "Power and battery",
+        "open_remote": "Remote access (SSH)",
+        "open_security": "Security and firewall",
+        "open_network": "Network diagnostics",
+        "open_mirrors": "Package mirrors",
+        "open_runtime": "Runtimes and package managers",
+        "open_logs": "Collect diagnostics",
         "terminal": "Terminal",
         "terminal_title": "Terminal and shells",
         "terminal_body": "bash is the system default and always installed. Pick another shell below: the install button opens Quick System Runtime Setup with that shell preselected, and the reviewed transaction stays there. The login shell only changes when you run the command shown.",
@@ -279,6 +296,7 @@ class WelcomeWindow(QMainWindow):
             (self.tr("home"), "go-home-symbolic"),
             (self.tr("status"), "dialog-information"),
             (self.tr("terminal"), "utilities-terminal"),
+            (self.tr("system"), "preferences-system"),
             (self.tr("help"), "help-contents"),
         ):
             item = QListWidgetItem(QIcon.fromTheme(icon), label)
@@ -289,6 +307,7 @@ class WelcomeWindow(QMainWindow):
         self.pages.addWidget(self._home_page())
         self.pages.addWidget(self._status_page())
         self.pages.addWidget(self._terminal_page())
+        self.pages.addWidget(self._system_page())
         self.pages.addWidget(self._help_page())
         self.navigation.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.navigation.setCurrentRow(0)
@@ -579,6 +598,81 @@ class WelcomeWindow(QMainWindow):
     def _copy_command(self, path):
         QApplication.clipboard().setText(f"chsh -s {path}")
         self.statusBar().showMessage(self.tr("terminal_copied"), 4000)
+
+    def _system_page(self):
+        page, layout = self._page(self.tr("system"))
+        body = QLabel(self.tr("system_body"))
+        body.setObjectName("muted")
+        body.setWordWrap(True)
+        layout.addWidget(body)
+        entries = self._system_entries()
+        if not entries:
+            empty = QLabel(self.tr("system_unavailable"))
+            empty.setObjectName("muted")
+            empty.setWordWrap(True)
+            layout.addWidget(empty)
+        else:
+            grid = QGridLayout()
+            grid.setHorizontalSpacing(12)
+            grid.setVerticalSpacing(12)
+            for index, entry in enumerate(entries):
+                tile = self._system_tile(entry)
+                grid.addWidget(tile, index // 2, index % 2)
+            layout.addLayout(grid)
+        layout.addStretch()
+        return page
+
+    def _system_entries(self):
+        """Read the capability manifest and keep the entries meant for Welcome.
+
+        Welcome is an entry point only: it opens the matching ``linxira-config``
+        subcommand in a terminal and never mutates the system itself.
+        """
+        document = read_json(CAPABILITIES_PATH)
+        if not isinstance(document, dict):
+            return []
+        commands = document.get("commands")
+        if not isinstance(commands, list):
+            return []
+        scope = "laptop" if self._is_laptop() else "desktop"
+        entries = []
+        for command in commands:
+            meta = command.get("welcome") if isinstance(command, dict) else None
+            if not isinstance(meta, dict):
+                continue
+            wanted = meta.get("scope", "any")
+            if wanted not in ("any", scope):
+                continue
+            if command.get("mutating") and meta.get("allow_mutating") is not True:
+                continue
+            entries.append(meta)
+        entries.sort(key=lambda item: item.get("order", 100))
+        return entries
+
+    def _is_laptop(self):
+        try:
+            chassis = Path("/sys/class/dmi/id/chassis_type").read_text(encoding="utf-8").strip()
+        except OSError:
+            return False
+        if chassis in ("8", "9", "10", "14", "30", "31", "32"):
+            return True
+        return any(Path("/sys/class/power_supply").glob("BAT*"))
+
+    def _system_tile(self, entry):
+        label = self.tr(entry.get("label_key", "system"))
+        button = QPushButton(QIcon.fromTheme(entry.get("icon", "preferences-system")), label)
+        button.setObjectName("actionTile")
+        button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        button.setMinimumHeight(72)
+        executable, arguments = self._resolve_app("config")
+        available = bool(executable) and (
+            shutil.which(executable) is not None or os.access(executable, os.X_OK)
+        )
+        button.setEnabled(available)
+        if not available:
+            button.setToolTip(self.tr("system_config_missing"))
+        button.clicked.connect(lambda: self._launch_app("config", label))
+        return button
 
     def _help_page(self):
         page, layout = self._page(self.tr("help"))

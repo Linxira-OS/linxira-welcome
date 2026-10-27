@@ -56,5 +56,16 @@
   "github": "Linxira GitHub",
   "show_login": "ログイン時に Welcome を表示",
   "launch_error": "{name} を開けませんでした。",
-  "open_terminal": "ターミナル"
+  "open_terminal": "ターミナル",
+  "system": "システム",
+  "system_body": "Linxira のシステムツールを開きます。各項目は対応する linxira-config コマンドを端末で実行します。このウィンドウ自体は変更を行いません。",
+  "system_unavailable": "システム機能リストがインストールされていません（linxira-config-hub）。",
+  "system_config_missing": "Linxira 設定ツールがインストールされていません。",
+  "open_power": "電源とバッテリー",
+  "open_remote": "リモートアクセス（SSH）",
+  "open_security": "セキュリティとファイアウォール",
+  "open_network": "ネットワーク診断",
+  "open_mirrors": "パッケージミラー",
+  "open_runtime": "ランタイムとパッケージ管理",
+  "open_logs": "診断情報の収集"
 }

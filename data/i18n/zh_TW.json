@@ -61,5 +61,16 @@
   "component_deferred_title": "完成延後元件的安裝",
   "component_deferred_body": "安裝時選擇了 {count} 個需要連網的系統元件，因當時沒有可用網路而被延後。開啟「快速配置系統執行時」即可完成安裝——延後項目已自動為你勾選。",
   "component_deferred_continue": "繼續安裝",
-  "open_terminal": "終端機"
+  "open_terminal": "終端機",
+  "system": "系統",
+  "system_body": "開啟一項 Linxira 系統工具。每個入口都會在終端機執行對應的 linxira-config 指令；本視窗不會直接修改系統。",
+  "system_unavailable": "未安裝系統能力清單（linxira-config-hub）。",
+  "system_config_missing": "未安裝 Linxira 設定命令列工具。",
+  "open_power": "電源與電池",
+  "open_remote": "遠端存取（SSH）",
+  "open_security": "安全與防火牆",
+  "open_network": "網路診斷",
+  "open_mirrors": "軟體來源鏡像",
+  "open_runtime": "執行環境與套件管理員",
+  "open_logs": "收集診斷紀錄"
 }

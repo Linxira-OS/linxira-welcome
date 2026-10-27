@@ -56,5 +56,16 @@
   "github": "Linxira en GitHub",
   "show_login": "Mostrar Welcome al iniciar sesión",
   "launch_error": "No se pudo abrir {name}.",
-  "open_terminal": "Terminal"
+  "open_terminal": "Terminal",
+  "system": "Sistema",
+  "system_body": "Abre una herramienta del sistema Linxira. Cada entrada ejecuta el comando linxira-config correspondiente en la terminal; esta ventana no modifica nada.",
+  "system_unavailable": "La lista de capacidades no está instalada (linxira-config-hub).",
+  "system_config_missing": "La herramienta de configuración de Linxira no está instalada.",
+  "open_power": "Energía y batería",
+  "open_remote": "Acceso remoto (SSH)",
+  "open_security": "Seguridad y cortafuegos",
+  "open_network": "Diagnóstico de red",
+  "open_mirrors": "Réplicas de paquetes",
+  "open_runtime": "Entornos de ejecución",
+  "open_logs": "Recopilar diagnósticos"
 }

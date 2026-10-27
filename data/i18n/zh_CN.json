@@ -64,5 +64,16 @@
   "launch_error": "无法打开{name}。",
   "driver_setup_title": "快速配置驱动",
   "driver_setup_body": "打开「硬件和驱动」：自动检测硬件并安装匹配驱动。Linxira 使用通用 Linux 内核，无需构建定制内核。",
-  "open_terminal": "终端"
+  "open_terminal": "终端",
+  "system": "系统",
+  "system_body": "打开一项 Linxira 系统工具。每个入口都会在终端里运行对应的 linxira-config 命令；本窗口不会直接修改系统。",
+  "system_unavailable": "未安装系统能力清单（linxira-config-hub）。",
+  "system_config_missing": "未安装 Linxira 配置命令行工具。",
+  "open_power": "电源与电池",
+  "open_remote": "远程访问（SSH）",
+  "open_security": "安全与防火墙",
+  "open_network": "网络诊断",
+  "open_mirrors": "软件源镜像",
+  "open_runtime": "运行时与包管理器",
+  "open_logs": "收集诊断日志"
 }
