@@ -69,7 +69,7 @@ CAPABILITIES_PATH = Path(
         "/usr/share/linxira/agent/capabilities.json",
     )
 )
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.1"
 
 # 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
 LANGUAGES = {
@@ -650,13 +650,33 @@ class WelcomeWindow(QMainWindow):
         return entries
 
     def _is_laptop(self):
+        """Portable chassis, or a real battery on hardware that is not a VM.
+
+        Hyper-V exposes a synthetic BAT1 with chassis type 3 (desktop); treating
+        that as a laptop would surface battery entries that cannot work.
+        """
         try:
             chassis = Path("/sys/class/dmi/id/chassis_type").read_text(encoding="utf-8").strip()
         except OSError:
             return False
         if chassis in ("8", "9", "10", "14", "30", "31", "32"):
             return True
+        if self._is_virtual_machine():
+            return False
         return any(Path("/sys/class/power_supply").glob("BAT*"))
+
+    def _is_virtual_machine(self):
+        try:
+            return Path("/sys/class/dmi/id/sys_vendor").read_text(encoding="utf-8").strip() in (
+                "Microsoft Corporation",
+                "QEMU",
+                "innotek GmbH",
+                "VMware, Inc.",
+                "Xen",
+                "Parallels Software International Inc.",
+            )
+        except OSError:
+            return False
 
     def _system_tile(self, entry):
         label = self.tr(entry.get("label_key", "system"))

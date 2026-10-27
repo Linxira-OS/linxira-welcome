@@ -200,3 +200,8 @@ class SystemPageTests(unittest.TestCase):
         for path in sorted(I18N.glob("*.json")):
             document = json.loads(path.read_text(encoding="utf-8"))
             self.assertTrue(required.issubset(document), path.name)
+
+    def test_synthetic_battery_in_a_vm_is_not_a_laptop(self):
+        self.assertIn("_is_virtual_machine", self.source)
+        self.assertIn('if self._is_virtual_machine():', self.source)
+        self.assertIn('"Microsoft Corporation"', self.source)
