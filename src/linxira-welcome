@@ -70,13 +70,20 @@ CAPABILITIES_PATH = Path(
         "/usr/share/linxira/agent/capabilities.json",
     )
 )
-APP_VERSION = "1.2.2"
+APP_VERSION = "1.2.3"
 
-# 2026-08-13 用户决策: 语言仅保留 中/英/繁中, 其他语言 fallback 英文
+# 2026-10-29 用户决策: 已有翻译全部开放; 中/英/繁中置顶。
 LANGUAGES = {
     "en": "English",
     "zh_CN": "简体中文",
     "zh_TW": "繁體中文",
+    "de": "Deutsch",
+    "es": "Español",
+    "fr": "Français",
+    "ja": "日本語",
+    "ko": "한국어",
+    "pt_BR": "Português (Brasil)",
+    "ru": "Русский",
 }
 
 LINKS = {
@@ -1047,7 +1054,7 @@ class WelcomeWindow(QMainWindow):
             QPushButton#actionTile { text-align: left; padding: 12px 18px; background: palette(base); border: 1px solid palette(midlight); }
             QPushButton#actionTile:hover, QPushButton#linkRow:hover { border-color: #147f78; }
             QPushButton#linkRow { text-align: left; padding: 8px 14px; background: palette(base); border: 1px solid palette(midlight); }
-            QComboBox#languageSelector { min-width: 150px; min-height: 34px; padding: 3px 8px; }
+            QComboBox#languageSelector { min-width: 190px; min-height: 34px; padding: 3px 8px; }
             """
         )
 

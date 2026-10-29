@@ -160,6 +160,17 @@ class WelcomeTests(unittest.TestCase):
             document = json.loads(path.read_text(encoding="utf-8"))
             self.assertTrue(required.issubset(document), path.name)
 
+    def test_language_selector_exposes_every_reviewed_translation(self):
+        languages = assignment_value(self.source, "LANGUAGES")
+        self.assertEqual(
+            list(languages),
+            ["en", "zh_CN", "zh_TW", "de", "es", "fr", "ja", "ko", "pt_BR", "ru"],
+        )
+        self.assertEqual(
+            set(languages),
+            {path.stem for path in I18N.glob("*.json")} | {"en"},
+        )
+
     def test_reads_the_updater_status_contract(self):
         self.assertIn("LINXIRA_UPDATE_STATUS_PATH", self.source)
         self.assertIn('"available_update_count"', self.source)
